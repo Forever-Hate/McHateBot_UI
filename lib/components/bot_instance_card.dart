@@ -160,13 +160,14 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
       stdoutSubscription?.cancel();
       stdoutSubscription = widget.instance.stdoutStream!.transform(utf8.decoder).listen((event) {
         logger.d('${widget.instance.username} stdout: ${event.toString()}');
-        if(event.toString().contains("[msa] First time signing in. Please authenticate now:"))
+        if(event.toString().contains("To sign in, use a web browser"))
         {
           stdoutSubscription!.cancel();
           showDialog(
             barrierDismissible: false, //點擊空白處不關閉
             context: context, 
             builder: (context){
+              logger.d("顯示登入視窗: ${event.toString()}");
               return LoginDialog(widget.instance,event.toString(),(){
                 stdoutSubscription = widget.instance.stdoutStream!.transform(utf8.decoder).listen((event) {
                   logger.d('${widget.instance.username} stdout: ${event.toString()}');

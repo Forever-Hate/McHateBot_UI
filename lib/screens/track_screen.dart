@@ -209,7 +209,7 @@ class _TrackScreenState extends State<TrackScreen> with AutomaticKeepAliveClient
                             child: Image.memory(InventoryService.getTextureFromName(name)!,scale:0.5,width: 50,height: 50),
                           ),
                           const SizedBox(width: 10),
-                          Text(LocalizationService.getLocalizedString("item_unit").replaceFirst('%name%', track.items[name]),style: Theme.of(context).textTheme.labelSmall),
+                          Text(LocalizationService.getLocalizedString("item_unit").replaceFirst('%name%', track.items[name].toString()),style: Theme.of(context).textTheme.labelSmall),
                         ],
                       ),
                     );

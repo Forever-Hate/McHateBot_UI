@@ -48,18 +48,20 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
       margin: const EdgeInsets.only(bottom: 10,left: 15),
       child: Row(
         children: [
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.labelSmall
+          Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.labelSmall
+            )
           ),
           const SizedBox(width: 5),
           Tooltip(
             message: "用\",\"分隔",
             child: Container(
               padding: const EdgeInsets.only(top: 10),
-              width: 200,
-              height: 75,
+              width: 500,
+              height: 100,
               child: TextFormField(
                 controller: controller,
                 onChanged: null,
@@ -78,20 +80,27 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          islast ? IconButton(
-            onPressed: (){
-              setState(() {
-                tradeContentList.add(TextEditingController(text: ""));
-              });
-            },
-            icon: const Icon(Icons.add)
-          ): IconButton(
-            onPressed: (){
-              setState(() {
-                tradeContentList.remove(controller);
-              });
-            },
-            icon: const Icon(Icons.remove)
+          islast ? Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: IconButton(
+              onPressed: (){
+                setState(() {
+                  tradeContentList.add(TextEditingController(text: ""));
+                });
+              },
+              icon: const Icon(Icons.add)
+            )
+          ): 
+          Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: IconButton(
+              onPressed: (){
+                setState(() {
+                  tradeContentList.remove(controller);
+                });
+              },
+              icon: const Icon(Icons.remove)
+            )
           )
         ],
       )
@@ -106,10 +115,13 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.labelSmall
+          Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall
+            )
           ),
           const SizedBox(width: 5),
           Tooltip(
@@ -117,7 +129,7 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
             child: Container(
               padding: const EdgeInsets.only(top: 10),
               width: 200,
-              height: 75,
+              height: 100,
               child: TextFormField(
                 enabled: enabled,
                 controller: TextEditingController(text: value),
@@ -139,7 +151,6 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
         ],
       )
     );
-  
   }
 
   /// 取得數字輸入框
@@ -151,17 +162,20 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.labelSmall
+          Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall
+            )
           ),
           const SizedBox(width: 10),
           Tooltip(
             message: tooltip,
             child: SizedBox(
               width: 200,
-              height: 50,
+              height: 75,
               child: TextFormField(
                 enabled: enabled,
                 controller: TextEditingController(text: value),
@@ -300,14 +314,49 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
                       }),
                       Visibility(
                         visible: setting!.enable_multiple_place_store,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            getTextField(LocalizationService.getLocalizedString("store_place_tooltip"),LocalizationService.getLocalizedString("store_place_title"),setting!.store_place.join(","), (newValue){
-                              setting!.store_place = newValue.split(",");
-                            }),
-                          ],
-                        ),
+                        child: Container(
+                          padding: const EdgeInsets.only(top: 10),
+                          margin: const EdgeInsets.only(bottom: 10,left: 15),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 25),
+                                child: Text(
+                                  LocalizationService.getLocalizedString("store_place_title"),
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                )
+                              ),
+                              const SizedBox(width: 5),
+                              Tooltip(
+                                message: LocalizationService.getLocalizedString("store_place_tooltip"),
+                                child: Container(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  width: 300,
+                                  height: 100,
+                                  child: TextFormField(
+                                    controller: TextEditingController(text: setting!.store_place.join(",")),
+                                    onChanged: (newValue){
+                                      setting!.store_place = newValue.split(",");
+                                    },
+                                    style: Theme.of(context).textTheme.labelSmall,
+                                    decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    autovalidateMode: AutovalidateMode.always,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return LocalizationService.getLocalizedString("config_is_empty_error");
+                                      }
+                                      return null;
+                                    },
+                                  )
+                                ),
+                              )
+                            ],
+                          )
+                        )
                       ),
                       getSwitchListTile(LocalizationService.getLocalizedString("enable_afk_after_store_tooltip"),LocalizationService.getLocalizedString("enable_afk_after_store_title"), setting!.enable_afk_after_store, (newValue){
                         setState(() {
@@ -316,14 +365,49 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
                       }),
                       Visibility(
                         visible: setting!.enable_afk_after_store,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            getTextField(LocalizationService.getLocalizedString("afk_place_tooltip"),LocalizationService.getLocalizedString("afk_place_title"),setting!.afk_place.join(","), (newValue){
-                              setting!.afk_place = newValue.split(",");
-                            }),
-                          ],
-                        ),
+                        child: Container(
+                          padding: const EdgeInsets.only(top: 10),
+                          margin: const EdgeInsets.only(bottom: 10,left: 15),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 25),
+                                child: Text(
+                                  LocalizationService.getLocalizedString("afk_place_title"),
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                )
+                              ),
+                              const SizedBox(width: 5),
+                              Tooltip(
+                                message: LocalizationService.getLocalizedString("afk_place_tooltip"),
+                                child: Container(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  width: 300,
+                                  height: 100,
+                                  child: TextFormField(
+                                    controller: TextEditingController(text: setting!.afk_place.join(",")),
+                                    onChanged: (newValue){
+                                      setting!.afk_place = newValue.split(",");
+                                    },
+                                    style: Theme.of(context).textTheme.labelSmall,
+                                    decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    autovalidateMode: AutovalidateMode.always,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return LocalizationService.getLocalizedString("config_is_empty_error");
+                                      }
+                                      return null;
+                                    },
+                                  )
+                                ),
+                              )
+                            ],
+                          )
+                        )
                       ),
                       getSwitchListTile(LocalizationService.getLocalizedString("enable_trade_announce_tooltip"),LocalizationService.getLocalizedString("enable_trade_announce_title"), setting!.enable_trade_announce, (newValue){
                         setState(() {

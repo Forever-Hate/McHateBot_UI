@@ -168,6 +168,14 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
           context, 
           Text(LocalizationService.getLocalizedString("close_window_dialog_content"),style: Theme.of(context).textTheme.labelSmall),
           () async {
+            // 關閉所有正在執行中的bot
+            instances.map((instance){
+              if(instance.isProcess)
+              {
+                BotInstanceService.closeBotInstance(instance);
+              }
+            });
+            // 關閉視窗
             await windowManager.destroy();
           },null);
       }
@@ -287,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                         child: GridView.builder(
                           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                             maxCrossAxisExtent: 600,
-                            childAspectRatio: 3 / 0.7,
+                            childAspectRatio: 3 / 0.72,
                             crossAxisSpacing: 10.0,
                             mainAxisSpacing: 10.0,
                           ),

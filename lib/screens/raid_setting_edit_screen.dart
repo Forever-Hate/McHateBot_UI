@@ -118,10 +118,13 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.labelSmall
+          Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall
+            )
           ),
           const SizedBox(width: 5),
           Tooltip(
@@ -129,7 +132,7 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
             child: Container(
               padding: const EdgeInsets.only(top: 10),
               width: 200,
-              height: 75,
+              height: 100,
               child: TextFormField(
                 enabled: enabled,
                 controller: TextEditingController(text: value),
@@ -151,7 +154,6 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
         ],
       )
     );
-  
   }
   /// 取得TextField，只能輸入數字
   Widget getTextFieldDigitOnly(String tooltip,String label,String value,Function(String) onChanged,{bool enabled = true})
@@ -162,17 +164,20 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.labelSmall
+          Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall
+            )
           ),
           const SizedBox(width: 10),
           Tooltip(
             message: tooltip,
             child: SizedBox(
               width: 200,
-              height: 50,
+              height: 75,
               child: TextFormField(
                 enabled: enabled,
                 controller: TextEditingController(text: value),
@@ -295,9 +300,50 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
                                   setting!.attack_radius = 6;
                                 }
                             }),
-                            getTextField(LocalizationService.getLocalizedString("mob_list_tooltip"),LocalizationService.getLocalizedString("mob_list_title"),setting!.mob_list.join(","), (newValue){
-                              setting!.mob_list = newValue.split(",");
-                            }),
+                            // 目標怪物清單
+                            Container(
+                              padding: const EdgeInsets.only(top: 10),
+                              margin: const EdgeInsets.only(bottom: 10,left: 15),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 25),
+                                    child: Text(
+                                      LocalizationService.getLocalizedString("mob_list_title"),
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context).textTheme.labelSmall
+                                    )
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Tooltip(
+                                    message: LocalizationService.getLocalizedString("mob_list_tooltip"),
+                                    child: Container(
+                                      padding: const EdgeInsets.only(top: 10),
+                                      width: 300,
+                                      height: 100,
+                                      child: TextFormField(
+                                        controller: TextEditingController(text: setting!.mob_list.join(",")),
+                                        onChanged: (newValue){
+                                          setting!.mob_list = newValue.split(",");
+                                        },
+                                        style: Theme.of(context).textTheme.labelSmall,
+                                        decoration: const InputDecoration(
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        autovalidateMode: AutovalidateMode.always,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return LocalizationService.getLocalizedString("config_is_empty_error");
+                                          }
+                                          return null;
+                                        },
+                                      )
+                                    ),
+                                  )
+                                ],
+                              )
+                            )
                           ],
                         ),
                       ),
@@ -393,9 +439,50 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
                                   setting!.discard_interval = 60;
                                 }
                             }),
-                            getTextField(LocalizationService.getLocalizedString("stayItem_list_tooltip"),LocalizationService.getLocalizedString("stayItem_list_title"),setting!.stayItem_list.join(","), (newValue){
-                              setting!.stayItem_list = newValue.split(",");
-                            })
+                            //保留物品列表
+                            Container(
+                              padding: const EdgeInsets.only(top: 10),
+                              margin: const EdgeInsets.only(bottom: 10,left: 15),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 25),
+                                    child: Text(
+                                      LocalizationService.getLocalizedString("stayItem_list_title"),
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context).textTheme.labelSmall
+                                    )
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Tooltip(
+                                    message: LocalizationService.getLocalizedString("stayItem_list_tooltip"),
+                                    child: Container(
+                                      padding: const EdgeInsets.only(top: 10),
+                                      width: 350,
+                                      height: 100,
+                                      child: TextFormField(
+                                        controller: TextEditingController(text: setting!.stayItem_list.join(",")),
+                                        onChanged:  (newValue){
+                                          setting!.stayItem_list = newValue.split(",");
+                                        },
+                                        style: Theme.of(context).textTheme.labelSmall,
+                                        decoration: const InputDecoration(
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        autovalidateMode: AutovalidateMode.always,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return LocalizationService.getLocalizedString("config_is_empty_error");
+                                          }
+                                          return null;
+                                        },
+                                      )
+                                    ),
+                                  )
+                                ],
+                              )
+                            )
                           ],
                         ),
                       ),

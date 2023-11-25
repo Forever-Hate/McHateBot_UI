@@ -240,10 +240,13 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
-                                        Text(
-                                          LocalizationService.getLocalizedString("config_username"),
-                                          textAlign: TextAlign.center,
-                                          style: Theme.of(context).textTheme.labelSmall
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 25),
+                                          child: Text(
+                                            LocalizationService.getLocalizedString("config_username"),
+                                            textAlign: TextAlign.center,
+                                            style: Theme.of(context).textTheme.labelSmall
+                                          ),
                                         ),
                                         const SizedBox(width: 5),
                                         Tooltip(
@@ -251,7 +254,7 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
                                           child: Container(
                                             padding: const EdgeInsets.only(top: 10),
                                             width: 200,
-                                            height: 75,
+                                            height: 100,
                                             child: TextFormField(
                                               focusNode: _focusNode,
                                               controller: _textEditingController,
@@ -286,16 +289,18 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
                                   ),
                                   const SizedBox(width:10),
                                   isValidUsername && snap.data != null ? 
-                                  NetworkImage(
-                                    src: snap.data!,
-                                    width: 75,
-                                    height: 75,
-                                    errorWidget: const Icon(Icons.person,size: 75)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 25),
+                                    child: NetworkImage(
+                                      src: snap.data!,
+                                      width: 75,
+                                      height: 75,
+                                      errorWidget: const Icon(Icons.person,size: 75)
+                                    ),
                                   ):
-                                  SizedBox(
-                                    width: 75,
-                                    height: 75,
-                                    child: Icon(Icons.person,color:Theme.of(context).iconTheme.color ,size: 75)
+                                  const Padding(
+                                    padding: EdgeInsets.only(bottom: 25),
+                                    child: Icon(Icons.person,size: 75)
                                   )
                                 ]
                               );

@@ -44,21 +44,25 @@ class _NewInstanceDialogState extends State<NewInstanceDialog> {
     return types;
   }
   // 取得版本號DropdownMenuItem
-  List<DropdownMenuItem<String>> getBotVersionDropdownMenuItem(versionList)
+  List<DropdownMenuItem<String>> getBotVersionDropdownMenuItem(List<String> versionList)
   {
     logger.i("進入getBotVersionDropdownMenuItem，取得版本號DropdownMenuItem");
-    List<DropdownMenuItem<String>> versions = [
-      DropdownMenuItem<String>(
-        value: null,
-        child: Text(LocalizationService.getLocalizedString("new_instance_dialog_bot_version_non_item"),style:Theme.of(context).textTheme.labelSmall),
-      )
-    ];
+    List<DropdownMenuItem<String>> versions = [];
     for(String version in versionList)
     {
       versions.add(
         DropdownMenuItem<String>(
           value: version,
           child: Text(version,style:Theme.of(context).textTheme.labelSmall),
+        )
+      );
+    }
+    if(versionList.isEmpty)
+    {
+      versions.add(
+        DropdownMenuItem<String>(
+          value: null,
+          child: Text(LocalizationService.getLocalizedString("new_instance_dialog_bot_version_non_item"),style:Theme.of(context).textTheme.labelSmall),
         )
       );
     }
@@ -76,129 +80,140 @@ class _NewInstanceDialogState extends State<NewInstanceDialog> {
       ),
       content: SizedBox(
         height: 200,
-        child: Column(children: [
-        Tooltip(
-          message: LocalizationService.getLocalizedString("new_instance_dialog_bot_type_tooltip"),
-          child: Row(
-            children: [
-              Text(
-                LocalizationService.getLocalizedString("new_instance_dialog_bot_type_title"),
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-              DropdownButton(
-                menuMaxHeight: 150,
-                value: selectedType,
-                underline: const SizedBox(),
-                dropdownColor: Theme.of(context).cardColor,
-                items: getBotTypeDropdownMenuItem(), 
-                onChanged: (BotType? newValue){
-                  logger.d("選擇:$newValue");
-                  setState(() {
-                    selectedVersion = null;
-                    isTypeSelected = false;
-                    selectedType = newValue;
-                    if(newValue != null)
-                    {
-                      isTypeSelected = true;
-                    }
-                  });
-                }
-              )
-            ],
-          ),
-        ),
-        Tooltip(
-          message: LocalizationService.getLocalizedString("new_instance_dialog_bot_version_tooltip"),
-          child: Row(
-            children: [
-              Text(
-                LocalizationService.getLocalizedString("new_instance_dialog_bot_version_title"),
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-              selectedType != null ?
-              FutureBuilder(
-                future: GitHubService.getRepoTagList(selectedType!.value),
-                builder: (context,snapshot){
-                  if(snapshot.hasError)
-                  {
-                    return Text(
-                      LocalizationService.getLocalizedString("error"),
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold
-                      )
-                    );
-                  }
-                  else if(snapshot.connectionState == ConnectionState.waiting)
-                  {
-                    return Text(LocalizationService.getLocalizedString("now_loading"),style: Theme.of(context).textTheme.labelSmall);
-                  }
-                  else
-                  {
-                    logger.d(snapshot.data);
-                    return DropdownButton(
-                      menuMaxHeight: 150,
-                      value: selectedVersion,
-                      underline: const SizedBox(),
-                      dropdownColor: Theme.of(context).cardColor,
-                      items: getBotVersionDropdownMenuItem(snapshot.data), 
-                      onChanged: (String? newValue){
-                        logger.d("選擇:$newValue");
-                        setState(() {
-                          selectedVersion = newValue;
-                        });
-                      }
-                    );
-                  }
-              })
-              :
-              DropdownButton(
-                dropdownColor: Theme.of(context).cardColor,
-                menuMaxHeight: 150,
-                value: selectedVersion,
-                items: [
-                  DropdownMenuItem<String>(
-                    value: null,
-                    child: Text(LocalizationService.getLocalizedString("new_instance_dialog_bot_version_non_item"),style:Theme.of(context).textTheme.labelSmall),
-                  )
-                ], 
-                onChanged: null,
-                underline: const SizedBox()
-              )
-            ],
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        child: Column(
           children: [
-            ElevatedButton(
-              style: Theme.of(context).elevatedButtonTheme.style,
-              onPressed: () {
-                logger.d("按下${LocalizationService.getLocalizedString("cancel")}按鈕");
-                Navigator.pop(context);
-              }, 
-              child: Text(
-                LocalizationService.getLocalizedString("cancel"),
-                style:Theme.of(context).textTheme.labelSmall
-              )
+            Tooltip(
+              message: LocalizationService.getLocalizedString("new_instance_dialog_bot_type_tooltip"),
+              child: Row(
+                children: [
+                  Text(
+                    LocalizationService.getLocalizedString("new_instance_dialog_bot_type_title"),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  DropdownButton(
+                    menuMaxHeight: 150,
+                    value: selectedType,
+                    underline: const SizedBox(),
+                    dropdownColor: Theme.of(context).cardColor,
+                    items: getBotTypeDropdownMenuItem(), 
+                    onChanged: (BotType? newValue){
+                      logger.d("選擇:$newValue");
+                      setState(() {
+                        selectedVersion = null;
+                        isTypeSelected = false;
+                        selectedType = newValue;
+                        if(newValue != null)
+                        {
+                          isTypeSelected = true;
+                        }
+                      });
+                    }
+                  )
+                ],
+              ),
             ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              style: Theme.of(context).elevatedButtonTheme.style,
-              onPressed: () {
-                logger.d("按下${LocalizationService.getLocalizedString("confirm")}按鈕");
-                widget.onConfirm(selectedType,selectedVersion);
-              }, 
-              child: Text(
-                LocalizationService.getLocalizedString("confirm"),
-                style:Theme.of(context).textTheme.labelSmall
-              )
-            )
-          ],
-        )  
-      ]),
+            const SizedBox(height: 10),
+            Tooltip(
+              message: LocalizationService.getLocalizedString("new_instance_dialog_bot_version_tooltip"),
+              child: Row(
+                children: [
+                  Text(
+                    LocalizationService.getLocalizedString("new_instance_dialog_bot_version_title"),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  selectedType != null ?
+                  FutureBuilder(
+                    future: GitHubService.getRepoTagList(selectedType!.value),
+                    builder: (context,AsyncSnapshot<List<String>> snapshot){
+                      if(snapshot.hasError)
+                      {
+                        return Text(
+                          LocalizationService.getLocalizedString("error"),
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold
+                          )
+                        );
+                      }
+                      else if(snapshot.connectionState == ConnectionState.waiting)
+                      {
+                        return Text(LocalizationService.getLocalizedString("now_loading"),style: Theme.of(context).textTheme.labelSmall);
+                      }
+                      else
+                      {
+                        logger.d(snapshot.data);
+                        if(snapshot.data!.isNotEmpty)
+                        {
+                          selectedVersion = snapshot.data!.first;
+                        }
+                        else
+                        {
+                          selectedVersion = null;
+                        }
+                        return DropdownButton(
+                          menuMaxHeight: 150,
+                          value: selectedVersion,
+                          underline: const SizedBox(),
+                          dropdownColor: Theme.of(context).cardColor,
+                          items: getBotVersionDropdownMenuItem(snapshot.data!), 
+                          onChanged: (String? newValue){
+                            logger.d("選擇:$newValue");
+                            setState(() {
+                              selectedVersion = newValue;
+                            });
+                          }
+                        );
+                      }
+                  }):
+                  DropdownButton(
+                    dropdownColor: Theme.of(context).cardColor,
+                    menuMaxHeight: 150,
+                    value: selectedVersion,
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: null,
+                        child: Text(LocalizationService.getLocalizedString("new_instance_dialog_bot_version_non_item"),style:Theme.of(context).textTheme.labelSmall),
+                      )
+                    ], 
+                    onChanged: null,
+                    underline: const SizedBox()
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 25),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  style: Theme.of(context).elevatedButtonTheme.style,
+                  onPressed: () {
+                    logger.d("按下${LocalizationService.getLocalizedString("cancel")}按鈕");
+                    Navigator.pop(context);
+                  }, 
+                  child: Text(
+                    LocalizationService.getLocalizedString("cancel"),
+                    style:Theme.of(context).textTheme.labelSmall
+                  )
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  style: Theme.of(context).elevatedButtonTheme.style,
+                  onPressed: () {
+                    logger.d("按下${LocalizationService.getLocalizedString("confirm")}按鈕");
+                    widget.onConfirm(selectedType,selectedVersion);
+                  }, 
+                  child: Text(
+                    LocalizationService.getLocalizedString("confirm"),
+                    style:Theme.of(context).textTheme.labelSmall
+                  )
+                )
+              ],
+            )  
+          ]
+        ),
       ),
     );
   }
