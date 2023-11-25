@@ -1,0 +1,62 @@
+name: 自動部署release
+on:
+    push:
+      branches:
+        - deploy
+jobs:
+    build:
+      runs-on: windows-latest
+  
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: setup
+          path: assets/installer/output/installer-windows.exe
+      
+      - name: 產生新的版本號
+        id: generate_version
+        run: |
+            git fetch --tags
+            LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v1.0.-1")
+            VERSION_BITS=( ${LATEST_TAG//./ } )
+            VNUM1=${VERSION_BITS[0]}
+            VNUM2=${VERSION_BITS[1]}
+            VNUM3=${VERSION_BITS[2]}
+            VNUM3=$((VNUM3+1))
+            NEW_TAG="$VNUM1.$VNUM2.$VNUM3"
+            echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: 建立新的tag
+        id: create_tag
+        run: |
+            git tag ${{ steps.generate_version.outputs.NEW_TAG }}
+            git push origin ${{ steps.generate_version.outputs.NEW_TAG }}
+        env:
+            GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: 建立新的release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GH_PAT }} # This token is provided by Actions, you do not need to create your own token
+        with:
+            tag_name: ${{ steps.generate_version.outputs.NEW_TAG }}
+            release_name: Release ${{ steps.generate_version.outputs.NEW_TAG }}
+            draft: false
+            prerelease: false
+
+      - name: 上傳檔案至release
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+            asset_path: ./assets/installer/output/installer-windows.exe
+            asset_name: installer-windows.exe
+            asset_content_type: application/octet-stream
