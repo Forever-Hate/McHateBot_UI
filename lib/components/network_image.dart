@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 /// 網路圖片
-class NetworkImage extends StatelessWidget {
+class NetworkImage extends StatefulWidget {
   final String src;
   final BoxFit? fit;
   final double? width;
@@ -21,28 +21,42 @@ class NetworkImage extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<NetworkImage> createState() => _NetworkImageState();
+}
+
+class _NetworkImageState extends State<NetworkImage> {
+
+  late Future<Uint8List?> future;
+  
+  @override
+  void initState() {
+    super.initState();
+    future = loadImage(widget.src);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width,
-      height: height,
+      width: widget.width,
+      height: widget.height,
       child: Builder(builder: (context) {
         try {
           return FutureBuilder<Uint8List?>(
-            future: loadImage(src),
+            future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.data == null) 
                 {
-                  return errorWidget;
+                  return widget.errorWidget;
                 } 
                 else 
                 {
                   return Image.memory(
                     snapshot.data!,
-                    fit: fit,
-                    width: width,
-                    height: height,
-                    errorBuilder: (context, error, stackTrace) => errorWidget,
+                    fit: widget.fit,
+                    width: widget.width,
+                    height: widget.height,
+                    errorBuilder: (context, error, stackTrace) => widget.errorWidget,
                   );
                 }
               } 
@@ -55,7 +69,7 @@ class NetworkImage extends StatelessWidget {
             },
           );
         } catch (e) {
-          return errorWidget;
+          return widget.errorWidget;
         }
       }),
     );

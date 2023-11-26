@@ -84,8 +84,8 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
           },
         );
       }
-      final ws2 = await WebSocket.connect('ws://${dotenv.env['IP']}:${widget.instance.websocketPort}/player').timeout(const Duration(seconds: 30));
-      playerChannel = IOWebSocketChannel(ws2);
+      final ws = await WebSocket.connect('ws://${dotenv.env['IP']}:${widget.instance.websocketPort}/player').timeout(const Duration(seconds: 30));
+      playerChannel = IOWebSocketChannel(ws);
       playerChannel!.stream.listen(
         (data){
           try
