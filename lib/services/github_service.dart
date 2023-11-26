@@ -6,10 +6,11 @@ import "package:http/http.dart" as http;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../services/localization_service.dart';
 import '../utils/config.dart';
 import '../utils/exception.dart';
 import '../utils/logger.dart';
-import '../services/localization_service.dart';
+import '../utils/util.dart';
 
 
 class GitHubService {
@@ -61,5 +62,35 @@ class GitHubService {
         throw DownloadException("${LocalizationService.getLocalizedString("download_fail")}，Status code: ${response.statusCode}");
       }
       return join(baseDir.path,'$repoName.$version.zip');
+    }
+
+    /// 檢查是否有新版本
+    static Future<String?> checkNewVersion() async {
+      logger.i("進入checkNewVersion，檢查是否有新版本");
+      Uri tagUrl = Uri.parse('${API_ENDPOINT}repos/$OWNER/$repoName/tags');
+      logger.d(tagUrl);
+      final response = await http.get(tagUrl);
+      if (response.statusCode == 200)
+      {
+        List<dynamic> jsonData = json.decode(response.body);
+        if(jsonData.isNotEmpty)
+        {
+          final String latestVersion = jsonData[0]['name'] as String;
+          logger.d("最新版本：$latestVersion");
+          final String currentVersion = await Util.getProjectVersion();
+          logger.d("目前版本：$currentVersion");
+          if(currentVersion != latestVersion.substring(1))
+          {
+            logger.d("有新版本");
+            return latestVersion;
+          }
+        }
+      }
+      return null;
+    }
+
+    /// 取得release的url
+    static String getReleaseUrl(String version) {
+      return '$ENDPOINT$OWNER/$repoName/releases/tag/$version';
     }
 }

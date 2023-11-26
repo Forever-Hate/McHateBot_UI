@@ -21,6 +21,8 @@
     "save_fail":"儲存失敗，請填寫所有必要資訊",
     "back":"返回上一頁",
     "app_version":"版本: %version%",
+    "checked_new_version":"最新版本: 正式版%version%已發佈",
+    "download_new_version_button":"下載最新版本",
     "click_any_button":"點擊任意鍵進入主畫面",
 
     "theme_title":"主題:",

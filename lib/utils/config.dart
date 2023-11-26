@@ -4,8 +4,10 @@ const String API_ENDPOINT = "https://api.github.com/";
 const String ENDPOINT = "https://github.com/";
 ///github repo 擁有者名稱
 const String OWNER = "Forever-Hate";
+///github repo 名稱
+const String repoName = "McHateBot_UI";
 ///是否在開發階段
-const bool IS_DEVELOPMENT_STAGE = false;
+const bool IS_DEVELOPMENT_STAGE = true;
 ///bot種類
 const Map<String,String> BOT_TYPES = {
   "McHateBot_raid":"突襲",
