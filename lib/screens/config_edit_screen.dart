@@ -41,6 +41,8 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
 
   /// 是否正在讀取
   bool isLoad = false;
+
+  late Future<List<dynamic>> _future;
   
   @override
   void initState() {
@@ -69,6 +71,7 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
         });
       }
     });
+    _future = Future.wait([ConfigService.getConfig(widget.instance.uuid),MinecraftService.getServerPingMap()]);
   }
 
   @override
@@ -194,12 +197,12 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
         child: Form(
           key: _formKey,
           child: FutureBuilder(
-            future: Future.wait([ConfigService.getConfig(widget.instance.uuid),MinecraftService.getServerPingMap(),MinecraftService.getBestHost()]),
+            future: _future,
             builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
               if(snapshot.connectionState == ConnectionState.done)
               {
                 config ??= widget.config ?? snapshot.data![0];
-                config!.ip = snapshot.data![2];
+                config!.ip = (snapshot.data![1] as Map<String,int>).entries.reduce((a, b) => a.value < b.value ? a : b).key;
                 _textEditingController.text = config!.username;
                 return SingleChildScrollView(
                   child: Container(
@@ -328,6 +331,7 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
                                 LocalStorageService.getIsSaveConfigToTemp().then((value) {
                                   if(value == null)
                                   {
+                                    logger.d("第一次儲存，顯示是否儲存到暫存");
                                     Util.getYesNoDialog(
                                       context,
                                       StatefulBuilder(
@@ -377,6 +381,7 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
                                   }
                                   else
                                   {
+                                    logger.d("已經儲存過，直接儲存");
                                     Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){  
                                       if(value)
                                       {

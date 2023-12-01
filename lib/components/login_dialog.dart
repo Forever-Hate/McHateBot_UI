@@ -35,14 +35,14 @@ class _LoginDialogState extends State<LoginDialog> {
     message = widget.message;
     subscription = widget.instance.stdoutStream!.transform(utf8.decoder).listen((event) {
       logger.d("收到stdout: $event");
-      if(event.toString().contains("To sign in, use a web browser"))
+      if(event.toString().startsWith("[微軟帳號身分驗證]"))
       {
         setState(() {
           message = event.toString();
         });
       }
 
-      if(event.toString().contains("[msa] Signed in with Microsoft"))
+      if(event.toString().startsWith("[msa] Signed in with Microsoft"))
       {
         setState(() {
           isLogin = true;

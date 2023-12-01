@@ -4,12 +4,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart' hide NetworkImage;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/intl.dart';
+
 
 import 'package:web_socket_channel/io.dart';
 import 'package:marqueer/marqueer.dart';
 
 import '../components/network_image.dart';
 import '../components/login_dialog.dart';
+import '../components/log_dialog.dart';
 import '../models/bot_instance.dart';
 import '../models/player.dart';
 import '../models/track.dart';
@@ -28,7 +31,7 @@ class BotInstanceCard extends StatefulWidget {
   final Function(BotInstance) onSelected;
   final Function(BotInstance) onLaunch;
   final Function(BotInstance) onClose;
-  const BotInstanceCard(this.instance,this.isSelected,this.onSelected,this.onLaunch,this.onClose,{super.key});
+  const BotInstanceCard(this.instance,this.isSelected,this.onSelected,this.onLaunch,this.onClose,{Key? key}):super(key: key);
 
   @override
   State<BotInstanceCard> createState() => _BotInstanceCardState();
@@ -55,59 +58,57 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
     {
       if(widget.instance.type == BotType.raid)
       {
-        final ws = await WebSocket.connect('ws://${dotenv.env['IP']}:${widget.instance.websocketPort}/fullTrack').timeout(const Duration(seconds: 30));
-        fullTrackChannel = IOWebSocketChannel(ws);
-        fullTrackChannel!.stream.listen(
+        if(fullTrackChannel == null)
+        {
+          final ws = await WebSocket.connect('ws://${dotenv.env['IP']}:${widget.instance.websocketPort}/fullTrack').timeout(const Duration(seconds: 30));
+          fullTrackChannel = IOWebSocketChannel(ws);
+          fullTrackChannel!.stream.listen(
+            (data){
+              try
+              {
+                fullTrack = Track.fromJson(jsonDecode(data.toString()));
+                setState(() {});
+              }
+              catch(e)
+              {
+                fullTrack = null;
+              }
+            },
+            onDone: () {
+              logger.e("fullTrackChannel已關閉(BotInstanceCard)");
+            },
+          );
+        }
+      }
+      if(playerChannel == null)
+      {
+        final ws = await WebSocket.connect('ws://${dotenv.env['IP']}:${widget.instance.websocketPort}/player').timeout(const Duration(seconds: 30));
+        playerChannel = IOWebSocketChannel(ws);
+        playerChannel!.stream.listen(
           (data){
             try
             {
-              fullTrack = Track.fromJson(jsonDecode(data.toString()));
+              player = Player.fromJson(jsonDecode(data.toString()));
               setState(() {});
             }
             catch(e)
             {
-              fullTrack = null;
+              player = null;
             }
           },
-          onDone: () {
-            logger.e("fullTrackChannel已關閉(BotInstanceCard)");
-            // player = null;
-            // fullTrack = null;
-            // if(mounted && ModalRoute.of(context)!.isCurrent && widget.instance.isProcess)
-            // {
-            //   Util.getMessageDialog(context,"連線已關閉", () {
-            //     widget.onClose(widget.instance);
-            //   });
-            // }
-            // playerChannel!.sink.close();
-            // fullTrackChannel!.sink.close();
-          },
+          onDone: (){
+            logger.e("playerChannel已關閉(BotInstanceCard)");
+          }
         );
       }
-      final ws = await WebSocket.connect('ws://${dotenv.env['IP']}:${widget.instance.websocketPort}/player').timeout(const Duration(seconds: 30));
-      playerChannel = IOWebSocketChannel(ws);
-      playerChannel!.stream.listen(
-        (data){
-          try
-          {
-            player = Player.fromJson(jsonDecode(data.toString()));
-            setState(() {});
-          }
-          catch(e)
-          {
-            player = null;
-          }
-        },
-        onDone: (){
-          logger.e("playerChannel已關閉(BotInstanceCard)");
-        }
-      );
     }
     catch(e)
     {
       logger.e(e);
       player = null;
       fullTrack = null;
+      fullTrackChannel = null;
+      playerChannel = null;
       setState(() {
         Util.getMessageDialog(context,"websocket連線發生錯誤", () {
           BotInstanceService.closeBotInstance(widget.instance);
@@ -118,17 +119,55 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
   }
   
   @override
-  void didUpdateWidget(covariant BotInstanceCard oldWidget) {
-    logger.i("進入didUpdateWidget");
+  void didUpdateWidget(covariant BotInstanceCard oldWidget) 
+  {
+    // 紀錄stdout
+    void logEvent(String event) {
+      logger.d('${widget.instance.username} stdout: $event');
+      widget.instance.messageQueue.value.add('${DateFormat('[HH:mm:ss]').format(DateTime.now())} $event');
+      // 如果訊息佇列超過最大長度，就移除最舊的訊息
+      if(widget.instance.messageQueue.value.length > MAX_LOG_LENGTH) {
+        widget.instance.messageQueue.value.removeFirst();
+      }
+      widget.instance.messageQueue.notifyListeners();
+      // 如果偵測到登入訊息，就顯示登入視窗
+      if(event.toString().startsWith("[微軟帳號身分驗證]"))
+      {
+        stdoutSubscription!.cancel();
+        showDialog(
+          barrierDismissible: false, //點擊空白處不關閉
+          context: context, 
+          builder: (context){
+            logger.d("顯示登入視窗: ${event.toString()}");
+            return LoginDialog(widget.instance,event.toString(),(){
+              stdoutSubscription = widget.instance.stdoutStream!.transform(utf8.decoder).listen((event) {
+                logEvent(event);
+              });
+            });
+          }
+        );
+      }
+      //確保伺服器已開啟才進行連線
+      if(event.toString().contains("Server is running on port"))
+      {
+        logger.d("伺服器已開啟");
+        isConnectedWebsocket = true;
+        connectWebsocket();
+      }
+    }
+
+    logger.i("進入BotInstance didUpdateWidget (${widget.instance.username})");
     super.didUpdateWidget(oldWidget);
     if(widget.instance.isProcess)
-    {
+    { 
+      logger.d("isConnectedWebsocket: $isConnectedWebsocket");    
       //再次進來時重新連線
       if(isConnectedWebsocket)
       {
+        logger.d("重新連線");
         connectWebsocket();
       }
-      
+    
       stderrSubscription?.cancel();
       stderrSubscription = widget.instance.stderrStream!.transform(utf8.decoder).listen((event) {
         logger.e(event.toString());
@@ -159,30 +198,7 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
 
       stdoutSubscription?.cancel();
       stdoutSubscription = widget.instance.stdoutStream!.transform(utf8.decoder).listen((event) {
-        logger.d('${widget.instance.username} stdout: ${event.toString()}');
-        if(event.toString().contains("To sign in, use a web browser"))
-        {
-          stdoutSubscription!.cancel();
-          showDialog(
-            barrierDismissible: false, //點擊空白處不關閉
-            context: context, 
-            builder: (context){
-              logger.d("顯示登入視窗: ${event.toString()}");
-              return LoginDialog(widget.instance,event.toString(),(){
-                stdoutSubscription = widget.instance.stdoutStream!.transform(utf8.decoder).listen((event) {
-                  logger.d('${widget.instance.username} stdout: ${event.toString()}');
-                });
-              });
-            }
-          );
-        }
-        //確保伺服器已開啟才進行連線
-        if(event.toString().contains("Server is running on port"))
-        {
-          logger.d("伺服器已開啟");
-          isConnectedWebsocket = true;
-          connectWebsocket();
-        }
+        logEvent(event);
       });
     }
     else
@@ -194,6 +210,8 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
       stdoutSubscription?.cancel();
       isConnectedWebsocket = false;
       isShowdErrorDialog = false;
+      fullTrackChannel = null;
+      playerChannel = null;
       player = null;
       fullTrack = null;
     }
@@ -209,7 +227,21 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
       },
       onDoubleTap: () {
         logger.d("點擊2次");
-        widget.onLaunch(widget.instance);
+        if(!widget.instance.isProcess)
+        {
+          widget.onLaunch(widget.instance);
+        }
+        else
+        {
+          Util.getYesNoDialog(context, 
+            Text(LocalizationService.getLocalizedString("close_bot_instance_dialog_content"),style: Theme.of(context).textTheme.labelSmall), 
+            (){
+              widget.onClose(widget.instance);
+            },
+            null
+          );
+        }
+        
       },
       child: Container(
         padding: const EdgeInsets.all(5),
@@ -309,7 +341,7 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
               ],
             ),
             const SizedBox(width: 5),
-            Visibility(
+            Expanded(child: Visibility(
               visible: widget.instance.isProcess,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -388,6 +420,22 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
                   ),
                 ],
               ),
+            )),
+            const SizedBox(width: 5),
+            Visibility(
+              visible: widget.instance.isProcess,
+              child:Align(
+                alignment: Alignment.topRight,
+                child: IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  onPressed: () {
+                    logger.d("點擊info按鈕");
+                    showDialog(context: context, builder: (context) {
+                      return LogDialog(widget.instance);
+                    });
+                  },
+                ),
+              )
             )
           ],
         ),

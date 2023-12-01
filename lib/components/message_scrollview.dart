@@ -168,9 +168,11 @@ class _MessageScrollViewState extends State<MessageScrollView> {
             builder: (context, snapshot) {
               if (snapshot.hasData) 
               {
-                logger.d('${snapshot.data}');
                 //將當前資料暫存
-                final String currentData = snapshot.data;
+                String currentData = snapshot.data;
+                //修改父階span元素的字體顏色 透過toRadixString(16)轉成16進位
+                currentData = currentData.replaceRange(5, 5, " style=\"color: #${Theme.of(context).textTheme.labelSmall!.color!.value.toRadixString(16)}\"");
+                logger.d(currentData);
                 filterMessage(currentData);
 
                 //是否要自動捲動到底部

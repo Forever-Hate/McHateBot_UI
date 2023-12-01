@@ -29,7 +29,7 @@ class _ClockViewState extends State<ClockView> {
       child: Transform.rotate(
         angle: -pi / 2,
         child: CustomPaint(
-          painter: ClockPainter(DateTime.parse(widget.dateTimeString.replaceAll("/", "-"))),
+          painter: ClockPainter(context,DateTime.parse(widget.dateTimeString.replaceAll("/", "-"))),
         ),
       ),
     );
@@ -37,8 +37,9 @@ class _ClockViewState extends State<ClockView> {
 }
 
 class ClockPainter extends CustomPainter {
-  DateTime dateTime;
-  ClockPainter(this.dateTime);
+  final BuildContext context;
+  final DateTime dateTime;
+  ClockPainter(this.context,this.dateTime);
   //60 sec - 360, 1 sec - 6degree
   //12 hours  - 360, 1 hour - 30degrees, 1 min - 0.5degrees
   
@@ -145,8 +146,8 @@ class ClockPainter extends CustomPainter {
 
       textPainter.text = TextSpan(
         text: '$i',
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.labelSmall!.color,
           fontSize: 24,
         ),
       );

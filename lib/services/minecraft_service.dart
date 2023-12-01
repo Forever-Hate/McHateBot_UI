@@ -33,7 +33,7 @@ class MinecraftService{
     {
       try 
       {
-        final packet = await mc.ping(host, timeout: const Duration(seconds: 1));
+        final packet = await mc.ping(host, timeout: const Duration(seconds:3));
         final ping = packet?.ping;
         if (ping != null) 
         {
@@ -42,7 +42,7 @@ class MinecraftService{
       } 
       catch (e) 
       {
-        logger.e(e);
+        logger.e("ping $host 失敗，錯誤: $e");
       }
     }
     return result;

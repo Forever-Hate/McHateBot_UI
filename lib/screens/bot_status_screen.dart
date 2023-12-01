@@ -115,7 +115,7 @@ class _BotStatusScreenState extends State<BotStatusScreen> {
               return TabBarView(
                 children: [
                   Container(
-                    padding: const EdgeInsets.only(left: 40,right: 40,top:10),
+                    padding: const EdgeInsets.only(left: 40,right: 40,top:10,bottom: 10),
                     color: Theme.of(context).primaryColor,
                     child: SingleChildScrollView(
                       child: Column(

@@ -14,10 +14,9 @@ import '../utils/util.dart';
 
 
 class GitHubService {
-    /// 暫時不動 正式上線時要清空
+
     static Map<String,List<String>> tagList = {
-      "McHateBot_raid":["V1.2.3","V1.2.2","V1.2.1"],
-      "McHateBot_emerald":["V1.2","V1.1.92","V1.1.91"],
+      
     };
     ///透過指定的repoName取得版本(Tags)
     static Future<List<String>> getRepoTagList(String repoName) async 
@@ -26,18 +25,26 @@ class GitHubService {
       if(!tagList.containsKey(repoName))
       {
         logger.d("沒有緩存在map中");
-        Uri tagUrl = Uri.parse('${API_ENDPOINT}repos/$OWNER/$repoName/tags');
-        logger.d(tagUrl);
-        final response = await http.get(tagUrl);
-
-        if (response.statusCode == 200)
+        if(IS_DEVELOPMENT_STAGE)
         {
-          List<dynamic> jsonData = json.decode(response.body);
-
-          tagList[repoName] = jsonData.map((item) => item['name'] as String).toList();
-
+          tagList["McHateBot_raid"] = ["V1.2.3","V1.2.2","V1.2.1"];
+          tagList["McHateBot_emerald"] = ["V1.2","V1.1.92","V1.1.91"];
         }
-        logger.d(tagList);
+        else
+        {
+          Uri tagUrl = Uri.parse('${API_ENDPOINT}repos/$OWNER/$repoName/tags');
+          logger.d(tagUrl);
+          final response = await http.get(tagUrl);
+
+          if (response.statusCode == 200)
+          {
+            List<dynamic> jsonData = json.decode(response.body);
+
+            tagList[repoName] = jsonData.map((item) => item['name'] as String).toList();
+
+          }
+          logger.d(tagList);
+        }
       }
       return tagList[repoName]!;
     }

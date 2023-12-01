@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
+
+import 'package:flutter/material.dart';
 
 /// * 存取 BotInstance 的物件
 ///
@@ -19,6 +22,7 @@ import 'dart:io';
 /// 13. websocketPort: 實例的websocketPort，optional [int]
 /// 14. timer: 實例的計時器，optional [Timer]
 /// 15. duration: 實例的執行時間，optional [int]
+/// 16. messageQueue: 實例的std訊息佇列，optional [ValueNotifier<Queue<String>>]
 /// 
 /// * 方法：
 /// 1. toJson: 將 BotInstance 物件轉換為 JSON Map
@@ -39,6 +43,7 @@ class BotInstance {
   int? websocketPort;
   Timer? timer;
   int duration = 0;
+  ValueNotifier<Queue<String>> messageQueue = ValueNotifier(Queue());
 
   BotInstance(this.uuid, this.type, this.version,
       {this.botUuid = "",this.username = "" ,this.isProcess = false,this.hasConfigured = false, this.hasFinishSetting = false});

@@ -33,7 +33,8 @@ class LineBarViewer extends StatelessWidget {
       builder: (context, snapshot) {
         if(snapshot.hasData)
         {
-          return SizedBox(
+          return Container(
+            padding: const EdgeInsets.only(left:50),
             height: 500,
             child: LineChart(
               LineChartData(
@@ -105,7 +106,7 @@ class LineBarViewer extends StatelessWidget {
                           builder: (context) {
                             Track track = trackList[touchResponse.lineBarSpots![0].x.toInt()-1];
                             return AlertDialog(
-                              backgroundColor: const Color.fromARGB(255, 38, 44, 58),
+                              backgroundColor: Theme.of(context).dialogBackgroundColor,
                               title: Text('${track.startTime} ~ ${track.endTime}',style: Theme.of(context).textTheme.titleSmall),
                               content: track.items.isEmpty ? 
                               Text(LocalizationService.getLocalizedString("no_record"),style: Theme.of(context).textTheme.labelSmall):
@@ -125,9 +126,14 @@ class LineBarViewer extends StatelessWidget {
                   handleBuiltInTouches: true,
                 ),
                 titlesData: FlTitlesData(
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false,
+                    ),
+                  ),
                   rightTitles: AxisTitles(
                     sideTitles: SideTitles(
-                      reservedSize: 60,
+                      reservedSize: 65,
                       showTitles: true,
                       getTitlesWidget: (value,index) {
                         return Container(
@@ -136,6 +142,11 @@ class LineBarViewer extends StatelessWidget {
                         );
                       },
                     )
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false,
+                    ),
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(

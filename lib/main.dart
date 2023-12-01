@@ -121,14 +121,15 @@ class _MyAppState extends State<MyApp> {
               //icon按鈕
               iconButtonTheme: IconButtonThemeData(
                 style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 16, 22, 67)), //icon顏色
-                  iconSize: MaterialStateProperty.all<double>(25), //icon大小
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white), //icon顏色
+                  iconSize: MaterialStateProperty.all<double>(30), //icon大小
+                  padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(5)),
                   shape: MaterialStateProperty.all<OutlinedBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10), // 為方形外框設定圓角
                     ),
                   ),
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.white), //白色背景
+                  // backgroundColor: MaterialStateProperty.all<Color>(Colors.white), //白色背景
                 )
               ),
 
@@ -153,6 +154,10 @@ class _MyAppState extends State<MyApp> {
               listTileTheme: const ListTileThemeData(
                 //懸停時的顏色(借用位置修改) 兼 botInstance被選擇時的顏色
                 selectedColor: Colors.white12
+              ),
+              // 滾動條
+              scrollbarTheme: ScrollbarThemeData(
+                thumbColor: MaterialStateProperty.all<Color>(Colors.white60),
               ),
 
               useMaterial3: true,
@@ -221,14 +226,15 @@ class _MyAppState extends State<MyApp> {
               //icon按鈕
               iconButtonTheme: IconButtonThemeData(
                 style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 16, 22, 67)), //icon顏色
-                  iconSize: MaterialStateProperty.all<double>(25), //icon大小
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.black), //icon顏色
+                  iconSize: MaterialStateProperty.all<double>(30), //icon大小
+                  padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(5)),
                   shape: MaterialStateProperty.all<OutlinedBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10), // 為方形外框設定圓角
                     ),
                   ),
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
+                  // backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
                 )
               ),
 
@@ -253,6 +259,10 @@ class _MyAppState extends State<MyApp> {
               listTileTheme: const ListTileThemeData(
                 //懸停時的顏色(借用位置修改) 兼 botInstance被選擇時的顏色
                 selectedColor: Colors.black12
+              ),
+              // 滾動條
+              scrollbarTheme: ScrollbarThemeData(
+                thumbColor: MaterialStateProperty.all<Color>(Colors.black45),
               ),
 
               useMaterial3: true,

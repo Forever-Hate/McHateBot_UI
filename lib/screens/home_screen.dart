@@ -45,6 +45,8 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
   bool isNewVersion = false;
   //新版本號
   String newVersion = "";
+  // BotInstanceCard的key
+  final botInstanceCardKeys = <String, GlobalKey>{};
   
   //確認新增instance
   onConfirm(BotType? type,String? version) async
@@ -190,12 +192,6 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
   }
 
   @override
-  void dispose() {
-    logger.i("進入HomeScreen dispose");
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) 
   {
     logger.i("進入HomeScreen");
@@ -313,13 +309,63 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                 shrinkWrap: true,
                                 itemCount: instances.length,
                                 itemBuilder: (context, index) {
-                                  return BotInstanceCard(instances[index],instances[index] == selectedInstance,onSelected,onLaunch,onClose);
+                                  // 更換成能夠拖曳的元件(能夠交換位置)
+                                  return LongPressDraggable<int>(
+                                    data: index,
+                                    dragAnchorStrategy: pointerDragAnchorStrategy, // 拖曳時的錨點 (點擊的位置)
+                                    feedback: Transform.translate(
+                                      offset: Offset(-50.0,-(Theme.of(context).textTheme.labelSmall!.fontSize! + 70)/2),
+                                      child:SizedBox(
+                                        width: 100,
+                                        height: Theme.of(context).textTheme.labelSmall!.fontSize! + 70,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(5),
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  image: AssetImage('assets/icons/${instances[index].type.value}.png'),
+                                                  fit: BoxFit.fill
+                                                ),
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              width: 60,
+                                              height: 60,
+                                            ),
+                                            Text(
+                                              instances[index].username,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context).textTheme.labelSmall,
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    ),
+                                    child: DragTarget<int>(
+                                      builder: (context, candidateData, rejectedData) {
+                                        return BotInstanceCard(instances[index],instances[index] == selectedInstance,onSelected,onLaunch,onClose,key: botInstanceCardKeys.putIfAbsent(instances[index].uuid, () => GlobalKey()));
+                                      },
+                                      onWillAccept: (data) => data != index,
+                                      onAccept: (data) {
+                                        setState(() {
+                                          // 交換順序
+                                          var temp = instances[data];
+                                          instances[data] = instances[index];
+                                          instances[index] = temp;
+                                          //儲存順序
+                                          BotInstanceService.saveBotInstance(instances);
+                                        });
+                                      },
+                                    ),
+                                  );
                                 },
                               ),
                             ),
                           )
                         ),
                       ), 
+                      // 新版本提示
                       Visibility(
                         visible: isNewVersion,
                         child: Row(
@@ -475,6 +521,7 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                       setState(() {
                                         BotInstanceService.deleteBotInstance(selectedInstance!);
                                         instances.removeAt(instances.indexOf(selectedInstance!));
+                                        botInstanceCardKeys.remove(selectedInstance!.uuid);
                                         BotInstanceService.saveBotInstance(instances);
                                         if(instances.isNotEmpty)
                                         {
