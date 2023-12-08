@@ -411,8 +411,9 @@ class _BotInstanceStatusCardState extends State<BotInstanceStatusCard> {
                         child: getFoodIndicator(context)
                       ),
                       const SizedBox(height: 10),
+                      Text(LocalizationService.getLocalizedString("tps").replaceFirst('%tps%', widget.player.tps.toString()),style: Theme.of(context).textTheme.labelSmall),
+                      const SizedBox(height: 10),
                       Text(LocalizationService.getLocalizedString("operating_time").replaceFirst("%time%", Util.formatDuration(Duration(seconds: widget.instance.duration))),style: Theme.of(context).textTheme.labelSmall),
-                      const SizedBox(height: 32),
                     ],
                   )
                 ),

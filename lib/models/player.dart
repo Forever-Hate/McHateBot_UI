@@ -28,6 +28,7 @@ class Player {
   final String version;
   final String username;
   final String uuid;
+  final int tps;
   final String? money;
   final String? coin;
   final int? server;
@@ -46,6 +47,7 @@ class Player {
     required this.version,
     required this.username,
     required this.uuid,
+    required this.tps,
     this.money,
     this.coin,
     this.server,
@@ -66,6 +68,7 @@ class Player {
       version: json['version'] as String,
       username: json['username'] as String,
       uuid: json['uuid'] as String,
+      tps: json['tps'] as int,
       money: json['money'] as String?,
       coin: json['coin'] as String?,
       server: json['server'] as int?,
@@ -90,6 +93,7 @@ class Player {
       '  version: $version,\n'
       '  username: $username,\n'
       '  uuid: $uuid,\n'
+      '  tps: $tps,\n'
       '  money: $money,\n'
       '  coin: $coin,\n'
       '  server: $server,\n'

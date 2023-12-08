@@ -157,101 +157,105 @@ class _MessageScrollViewState extends State<MessageScrollView> {
   @override
   Widget build(BuildContext context) {
     logger.i("進入MessageScrollView");
-    return Column(
-      children: [
-        Text(LocalizationService.getLocalizedString("message_title"),style: Theme.of(context).textTheme.titleSmall),
-        Container(
-          height: 500,
-          alignment: Alignment.topLeft,
-          child: StreamBuilder(
-            stream: messageChannel!.stream,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) 
-              {
-                //將當前資料暫存
-                String currentData = snapshot.data;
-                //修改父階span元素的字體顏色 透過toRadixString(16)轉成16進位
-                currentData = currentData.replaceRange(5, 5, " style=\"color: #${Theme.of(context).textTheme.labelSmall!.color!.value.toRadixString(16)}\"");
-                logger.d(currentData);
-                filterMessage(currentData);
-
-                //是否要自動捲動到底部
-                if(isAutoScroll)
+    return Container(
+      padding: const EdgeInsets.only(left: 20,right: 20),
+      child: Column(
+        children: [
+          Text(LocalizationService.getLocalizedString("message_title"),style: Theme.of(context).textTheme.titleSmall),
+          Container(
+            height: 500,
+            alignment: Alignment.topLeft,
+            child: StreamBuilder(
+              stream: messageChannel!.stream,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) 
                 {
-                  _scrollToBottom();
-                }
-                return SelectionArea(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    controller: _scrollController,
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      return FutureBuilder(
-                        future: parseHtml(messages.elementAt(index)),
-                        builder: (BuildContext context, AsyncSnapshot<dom.Document> snapshot) {
-                          if (snapshot.hasData) 
-                          {
-                            return getMessageCard(times.elementAt(index),snapshot.data!);
-                          } 
-                          else 
-                          {
-                            return Container();
+                  //將當前資料暫存
+                  String currentData = snapshot.data;
+                  //修改父階span元素的字體顏色 透過toRadixString(16)轉成16進位
+                  currentData = currentData.replaceRange(5, 5, " style=\"color: #${Theme.of(context).textTheme.labelSmall!.color!.value.toRadixString(16)}\"");
+                  logger.d(currentData);
+                  filterMessage(currentData);
+
+                  //是否要自動捲動到底部
+                  if(isAutoScroll)
+                  {
+                    _scrollToBottom();
+                  }
+                  return SelectionArea(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        return FutureBuilder(
+                          future: parseHtml(messages.elementAt(index)),
+                          builder: (BuildContext context, AsyncSnapshot<dom.Document> snapshot) {
+                            if (snapshot.hasData) 
+                            {
+                              return getMessageCard(times.elementAt(index),snapshot.data!);
+                            } 
+                            else 
+                            {
+                              return Container();
+                            }
                           }
-                        }
-                      );
-                    }
-                  )
-                );
+                        );
+                      }
+                    )
+                  );
+                }
+                else 
+                {
+                  return const Text('Waiting for messages...');
+                }
               }
-              else 
-              {
-                return const Text('Waiting for messages...');
-              }
-            }
+            ),
           ),
-        ),
-        FilterSwitchList(isAutoScroll,setAutoScroll,filter),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.only(top: 10),
-                child: TextField(
-                  controller: _controller,
-                  style: Theme.of(context).textTheme.labelSmall,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    hintText: LocalizationService.getLocalizedString("command_input_hintText"),
-                    hintStyle: Theme.of(context).textTheme.labelSmall
-                  ),
-                  onEditingComplete: () {
-                    logger.d("按下enter送出指令");
+          FilterSwitchList(isAutoScroll,setAutoScroll,filter),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: TextField(
+                    controller: _controller,
+                    style: Theme.of(context).textTheme.labelSmall,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      hintText: LocalizationService.getLocalizedString("command_input_hintText"),
+                      hintStyle: Theme.of(context).textTheme.labelSmall
+                    ),
+                    onEditingComplete: () {
+                      logger.d("按下enter送出指令");
+                      widget.instance.process!.stdin.writeln(_controller.text);
+                      _controller.clear();
+                    },
+                  )
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                margin: const EdgeInsets.only(top: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5)
+                ),
+                child: IconButton(
+                  style: Theme.of(context).iconButtonTheme.style,
+                  onPressed: (){
+                    logger.d("按下送出按鈕");
                     widget.instance.process!.stdin.writeln(_controller.text);
                     _controller.clear();
-                  },
-                )
-              ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5)
-              ),
-              child: IconButton(
-                style: Theme.of(context).iconButtonTheme.style,
-                onPressed: (){
-                  logger.d("按下送出按鈕");
-                  widget.instance.process!.stdin.writeln(_controller.text);
-                  _controller.clear();
-                }, 
-                icon: const Icon(Icons.send)
-              ),
-            )
-          ],
-        )
-      ],
+                  }, 
+                  icon: const Icon(Icons.send)
+                ),
+              )
+            ],
+          )
+        ],
+  ),
     );
   }
 }

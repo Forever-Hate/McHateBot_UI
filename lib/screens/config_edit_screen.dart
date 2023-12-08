@@ -39,8 +39,8 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
   /// 是否要存到暫存(checkBox value)
   bool isSaveToTemp = false;
 
-  /// 是否正在讀取
-  bool isLoad = false;
+  /// 滾動控制器
+  final ScrollController _scrollController = ScrollController();
 
   late Future<List<dynamic>> _future;
   
@@ -55,13 +55,14 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
         {
           return;
         }
-        MinecraftService.getUuidFromName(_textEditingController.text).then((value){
+        MinecraftService.getUuidFromName(_textEditingController.text).then((value)
+        {
           setState(() {
             if(value != null)
             {
               isValidUsername = true;
               config!.username = _textEditingController.text;
-              MinecraftService.getUuidFromName(_textEditingController.text).then((value) => widget.instance.botUuid = value!);
+              widget.instance.botUuid = value;
             }
             else
             {
@@ -175,22 +176,42 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       appBar: getCustomAppBarByIndex(LocalizationService.getLocalizedString("appbar_config_title"), context),
-      floatingActionButton: Tooltip(
-        message: LocalizationService.getLocalizedString("set_up_guide"),
-        child:IconButton(
-          icon: const Icon(FontAwesomeIcons.github),
-          onPressed: (){
-            logger.d("按下設定教學按鈕");
-            if(widget.instance.type == BotType.raid)
-            {
-              Util.openUri("https://github.com/Forever-Hate/McHateBot_raid/wiki/Setup-Guide-%E8%A8%AD%E5%AE%9A%E6%95%99%E5%AD%B8#configjson");
-            }
-            else
-            {
-              Util.openUri("https://github.com/Forever-Hate/McHateBot_emerald/wiki/Setup-Guide-%E8%A8%AD%E5%AE%9A%E6%95%99%E5%AD%B8#configjson");
-            }
-          },
-        ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Tooltip(
+            message: LocalizationService.getLocalizedString("set_up_guide"),
+            child:IconButton(
+              icon: const Icon(FontAwesomeIcons.github),
+              onPressed: (){
+                logger.d("按下設定教學按鈕");
+                if(widget.instance.type == BotType.raid)
+                {
+                  Util.openUri("https://github.com/Forever-Hate/McHateBot_raid/wiki/Setup-Guide-%E8%A8%AD%E5%AE%9A%E6%95%99%E5%AD%B8#configjson");
+                }
+                else
+                {
+                  Util.openUri("https://github.com/Forever-Hate/McHateBot_emerald/wiki/Setup-Guide-%E8%A8%AD%E5%AE%9A%E6%95%99%E5%AD%B8#configjson");
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          IconButton(
+            icon: const Icon(Icons.keyboard_arrow_down),
+            onPressed: (){
+              logger.d("滾動到底部");
+              if(_scrollController.positions.isNotEmpty)
+              {
+                _scrollController.animateTo(
+                  _scrollController.position.maxScrollExtent,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: Container(
         padding: const EdgeInsets.only(bottom: 10),
@@ -205,6 +226,7 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
                 config!.ip = (snapshot.data![1] as Map<String,int>).entries.reduce((a, b) => a.value < b.value ? a : b).key;
                 _textEditingController.text = config!.username;
                 return SingleChildScrollView(
+                  controller: _scrollController,
                   child: Container(
                     padding: const EdgeInsets.only(left: 10),
                       child: Column(
@@ -218,96 +240,93 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
                         },enabled: false),
                         FutureBuilder(
                           future: MinecraftService.getAvatarsFromName(_textEditingController.text),
-                          builder: (context, AsyncSnapshot<String?> snap) 
+                          builder: (context, AsyncSnapshot<String?> snapshot) 
                           {
-                            if(snap.hasError)
+                            if(snapshot.connectionState == ConnectionState.done)
                             {
-                              return Text(LocalizationService.getLocalizedString("error"));
-                            }
-                            else
-                            {
-                              logger.d("snap.data: ${snap.data}");
-                              if(snap.data == null)
-                              {
-                                isValidUsername = false;
-                              }
-                              else
+                              logger.d("snap.data: ${snapshot.data}");
+                              if(snapshot.data != null)
                               {
                                 isValidUsername = true;
                               }
-                              return Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.only(top: 10),
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(bottom: 25),
-                                          child: Text(
-                                            LocalizationService.getLocalizedString("config_username"),
-                                            textAlign: TextAlign.center,
-                                            style: Theme.of(context).textTheme.labelSmall
-                                          ),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Tooltip(
-                                          message: LocalizationService.getLocalizedString("config_username_tooltip"),
-                                          child: Container(
-                                            padding: const EdgeInsets.only(top: 10),
-                                            width: 200,
-                                            height: 100,
-                                            child: TextFormField(
-                                              focusNode: _focusNode,
-                                              controller: _textEditingController,
-                                              onChanged: (newValue){
-                                                logger.d("完成修改，newValue: $newValue");
-                                                config!.username = newValue;
-                                              },
-                                              style: Theme.of(context).textTheme.labelSmall,
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                              ),
-                                              autovalidateMode: AutovalidateMode.always,
-                                              validator: (value) {
-                                                if (value == null || value.isEmpty) {
-                                                  return LocalizationService.getLocalizedString("config_is_empty_error");
-                                                }
-                                                if(!isValidUsername)
-                                                {
-                                                  return LocalizationService.getLocalizedString("config_username_error");
-                                                }
-                                                return null;
-                                              },
-                                              onEditingComplete: () {
-                                                setState(() {
-                                                });
-                                              },
-                                            )
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                  ),
-                                  const SizedBox(width:10),
-                                  isValidUsername && snap.data != null ? 
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 25),
-                                    child: NetworkImage(
-                                      src: snap.data!,
-                                      width: 75,
-                                      height: 75,
-                                      errorWidget: const Icon(Icons.person,size: 75)
-                                    ),
-                                  ):
-                                  const Padding(
-                                    padding: EdgeInsets.only(bottom: 25),
-                                    child: Icon(Icons.person,size: 75)
-                                  )
-                                ]
-                              );
+                              else
+                              {
+                                isValidUsername = false;
+                              }
                             }
+                            return Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 25),
+                                        child: Text(
+                                          LocalizationService.getLocalizedString("config_username"),
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(context).textTheme.labelSmall
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Tooltip(
+                                        message: LocalizationService.getLocalizedString("config_username_tooltip"),
+                                        child: Container(
+                                          padding: const EdgeInsets.only(top: 10),
+                                          width: 200,
+                                          height: 100,
+                                          child: TextFormField(
+                                            focusNode: _focusNode,
+                                            controller: _textEditingController,
+                                            onChanged: (newValue){
+                                              logger.d("完成修改，newValue: $newValue");
+                                              config!.username = newValue;
+                                            },
+                                            style: Theme.of(context).textTheme.labelSmall,
+                                            decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                            ),
+                                            autovalidateMode: AutovalidateMode.always,
+                                            validator: (value) {
+                                              if (value == null || value.isEmpty) {
+                                                return LocalizationService.getLocalizedString("config_is_empty_error");
+                                              }
+                                              if(!isValidUsername)
+                                              {
+                                                return LocalizationService.getLocalizedString("config_username_error");
+                                              }
+                                              return null;
+                                            },
+                                            onEditingComplete: () {
+                                              setState(() {
+                                              });
+                                            },
+                                          )
+                                        ),
+                                      )
+                                    ],
+                                  )
+                                ),
+                                const SizedBox(width:10),
+                                isValidUsername && snapshot.data != null ? 
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 25),
+                                  child: NetworkImage(
+                                    key:UniqueKey(),
+                                    src: snapshot.data!,
+                                    width: 75,
+                                    height: 75,
+                                    errorWidget: const Icon(Icons.person,size: 75)
+                                  ),
+                                ):
+                                const Padding(
+                                  padding: EdgeInsets.only(bottom: 25),
+                                  child: Icon(Icons.person,size: 75)
+                                )
+                              ]
+                            );
                           }
                         ),
                         getTextField(LocalizationService.getLocalizedString("config_version_tooltip"),LocalizationService.getLocalizedString("config_version"), config!.version, null,enabled: false),

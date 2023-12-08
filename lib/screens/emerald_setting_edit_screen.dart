@@ -40,6 +40,9 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
   //是否儲存到暫存
   bool isSaveToTemp = false;
 
+  //滾動控制器
+  final ScrollController _scrollController = ScrollController();
+
   /// 取得宣傳內容群組(一個輸入框跟一個新增按鈕)
   Widget getTradeContentGroup(String title,TextEditingController controller,bool islast)
   {
@@ -243,14 +246,33 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       appBar: getCustomAppBarByIndex(LocalizationService.getLocalizedString("appbar_setting_title"), context),
-      floatingActionButton: Tooltip(
-        message: LocalizationService.getLocalizedString("set_up_guide"),
-        child:IconButton(
-          icon: const Icon(FontAwesomeIcons.github),
-          onPressed: (){
-            Util.openUri("https://github.com/Forever-Hate/McHateBot_emerald/wiki/Setup-Guide-%E8%A8%AD%E5%AE%9A%E6%95%99%E5%AD%B8#settingsjson");
-          },
-        ),
+      floatingActionButton: Column(
+        children: [
+          Tooltip(
+            message: LocalizationService.getLocalizedString("set_up_guide"),
+            child:IconButton(
+              icon: const Icon(FontAwesomeIcons.github),
+              onPressed: (){
+                Util.openUri("https://github.com/Forever-Hate/McHateBot_emerald/wiki/Setup-Guide-%E8%A8%AD%E5%AE%9A%E6%95%99%E5%AD%B8#settingsjson");
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          IconButton(
+            icon: const Icon(Icons.keyboard_arrow_down),
+            onPressed: (){
+              logger.d("滾動到底部");
+              if(_scrollController.positions.isNotEmpty)
+              {
+                _scrollController.animateTo(
+                  _scrollController.position.maxScrollExtent,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: SettingService.getSetting(widget.instance.type, widget.instance.uuid),
@@ -267,6 +289,7 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
             return Container(
               padding: const EdgeInsets.only(bottom: 10),
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Form(
                   key:_formKey,
                   child: Column(

@@ -20,6 +20,7 @@ import '../services/config_service.dart';
 import '../services/github_service.dart';
 import '../services/localization_service.dart';
 import '../services/zip_service.dart';
+import '../utils/config.dart';
 import '../utils/logger.dart';
 import '../utils/util.dart';
 
@@ -299,68 +300,94 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                 color: Colors.transparent,
                               ),
                               margin: const EdgeInsets.only(top: 10),
-                              child: GridView.builder(
-                                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 600,
-                                  childAspectRatio: 3 / 0.72,
-                                  crossAxisSpacing: 10.0,
-                                  mainAxisSpacing: 10.0,
-                                ),
-                                shrinkWrap: true,
-                                itemCount: instances.length,
-                                itemBuilder: (context, index) {
-                                  // 更換成能夠拖曳的元件(能夠交換位置)
-                                  return LongPressDraggable<int>(
-                                    data: index,
-                                    dragAnchorStrategy: pointerDragAnchorStrategy, // 拖曳時的錨點 (點擊的位置)
-                                    feedback: Transform.translate(
-                                      offset: Offset(-50.0,-(Theme.of(context).textTheme.labelSmall!.fontSize! + 70)/2),
-                                      child:SizedBox(
-                                        width: 100,
-                                        height: Theme.of(context).textTheme.labelSmall!.fontSize! + 70,
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(5),
-                                              decoration: BoxDecoration(
-                                                image: DecorationImage(
-                                                  image: AssetImage('assets/icons/${instances[index].type.value}.png'),
-                                                  fit: BoxFit.fill
-                                                ),
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              width: 60,
-                                              height: 60,
-                                            ),
-                                            Text(
-                                              instances[index].username,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: Theme.of(context).textTheme.labelSmall,
-                                            ),
-                                          ],
+                              child: Column(
+                                children: BotType.values.map((botType){
+                                  var instances = this.instances.where((instance) => instance.type == botType).toList();
+                                  // 如果沒有該類型的bot，就不顯示
+                                  if(instances.isEmpty)
+                                  {
+                                    return const SizedBox();
+                                  }
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 10),
+                                        child: Text(BOT_TYPES[botType.value]!,style: Theme.of(context).textTheme.titleSmall),
+                                      ),
+                                      const Divider(),
+                                      GridView.builder(
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                          maxCrossAxisExtent: 600,
+                                          childAspectRatio: 3 / 0.72,
+                                          crossAxisSpacing: 10.0,
+                                          mainAxisSpacing: 10.0,
                                         ),
-                                      )
-                                    ),
-                                    child: DragTarget<int>(
-                                      builder: (context, candidateData, rejectedData) {
-                                        return BotInstanceCard(instances[index],instances[index] == selectedInstance,onSelected,onLaunch,onClose,key: botInstanceCardKeys.putIfAbsent(instances[index].uuid, () => GlobalKey()));
-                                      },
-                                      onWillAccept: (data) => data != index,
-                                      onAccept: (data) {
-                                        setState(() {
-                                          // 交換順序
-                                          var temp = instances[data];
-                                          instances[data] = instances[index];
-                                          instances[index] = temp;
-                                          //儲存順序
-                                          BotInstanceService.saveBotInstance(instances);
-                                        });
-                                      },
-                                    ),
+                                        shrinkWrap: true,
+                                        itemCount: instances.length,
+                                        itemBuilder: (context, index) {
+                                          // 更換成能夠拖曳的元件(能夠交換位置)
+                                          return LongPressDraggable<BotInstance>(
+                                            data: instances[index],
+                                            dragAnchorStrategy: pointerDragAnchorStrategy, // 拖曳時的錨點 (點擊的位置)
+                                            feedback: Transform.translate(
+                                              offset: Offset(-50.0,-(Theme.of(context).textTheme.labelSmall!.fontSize! + 70)/2),
+                                              child:SizedBox(
+                                                width: 100,
+                                                height: Theme.of(context).textTheme.labelSmall!.fontSize! + 70,
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.all(5),
+                                                      decoration: BoxDecoration(
+                                                        image: DecorationImage(
+                                                          image: AssetImage('assets/icons/${instances[index].type.value}.png'),
+                                                          fit: BoxFit.fill
+                                                        ),
+                                                        borderRadius: BorderRadius.circular(10),
+                                                      ),
+                                                      width: 60,
+                                                      height: 60,
+                                                    ),
+                                                    Text(
+                                                      instances[index].username,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: Theme.of(context).textTheme.labelSmall,
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            ),
+                                            child: DragTarget<BotInstance>(
+                                              builder: (context, candidateData, rejectedData) {
+                                                return BotInstanceCard(instances[index],instances[index] == selectedInstance,onSelected,onLaunch,onClose,key: botInstanceCardKeys.putIfAbsent(instances[index].uuid, () => GlobalKey()));
+                                              },
+                                              onWillAccept: (data) => data != instances[index] && data!.type == instances[index].type,
+                                              onAccept: (data) {
+                                                setState(() {
+                                                  // 交換順序
+                                                  var index1 = this.instances.indexOf(data);
+                                                  var index2 = this.instances.indexOf(instances[index]);
+
+                                                  // Swap the instances
+                                                  var temp = this.instances[index1];
+                                                  this.instances[index1] = this.instances[index2];
+                                                  this.instances[index2] = temp;
+                                                  //儲存順序
+                                                  BotInstanceService.saveBotInstance(this.instances);
+                                                });
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(height: 10),
+                                    ],
                                   );
-                                },
-                              ),
+                                }).toList()
+                              )
                             ),
                           )
                         ),
@@ -456,14 +483,17 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                               color: Colors.transparent,
                               child:ListTile(
                                 hoverColor: Theme.of(context).listTileTheme.selectedColor,
-                                title: Row(
-                                  children: [
-                                    Icon(Icons.play_circle_fill,color: Theme.of(context).iconTheme.color),
-                                    const SizedBox(width: 5),
-                                    Text(LocalizationService.getLocalizedString("launch"),style: Theme.of(context).textTheme.labelSmall)
-                                  ],
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.play_circle_fill,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text(LocalizationService.getLocalizedString("launch"),style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
                                 ),
-                                onTap: selectedInstance != null ? () {
+                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () {
                                   logger.d("按下${LocalizationService.getLocalizedString("launch")}按鈕");
                                   onLaunch(selectedInstance!);
                                 }:null,
@@ -474,12 +504,15 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                               color: Colors.transparent,
                               child: ListTile(
                                 hoverColor: Theme.of(context).listTileTheme.selectedColor,
-                                title: Row(
-                                  children: [
-                                    Icon(Icons.close,color: Theme.of(context).iconTheme.color),
-                                    const SizedBox(width: 5),
-                                    Text(LocalizationService.getLocalizedString("close_bot_instance"),style: Theme.of(context).textTheme.labelSmall)
-                                  ],
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.close,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text(LocalizationService.getLocalizedString("close_bot_instance"),style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
                                 ),
                                 onTap: selectedInstance != null && selectedInstance!.isProcess ? () {
                                   logger.d("按下${LocalizationService.getLocalizedString("close_bot_instance")}按鈕");
@@ -500,20 +533,18 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                               color: Colors.transparent,
                               child: ListTile(
                                 hoverColor: Theme.of(context).listTileTheme.selectedColor,
-                                title: Row(
-                                  children: [
-                                    Icon(Icons.remove,color: Theme.of(context).iconTheme.color),
-                                    const SizedBox(width: 5),
-                                    Text(LocalizationService.getLocalizedString("remove"),style: Theme.of(context).textTheme.labelSmall)
-                                  ],
-                                ),
-                                onTap: selectedInstance != null ? () {
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.remove,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text(LocalizationService.getLocalizedString("remove"),style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
+                                ), 
+                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () {
                                   logger.d("按下${LocalizationService.getLocalizedString("remove")}按鈕");
-                                  if(selectedInstance!.isProcess)
-                                  {
-                                    Util.getMessageDialog(context, LocalizationService.getLocalizedString("remove_error"),null);
-                                    return;
-                                  }
                                   Util.getYesNoDialog(
                                     context, 
                                     Text(LocalizationService.getLocalizedString("remove_dialog_content"),style: Theme.of(context).textTheme.labelSmall), 
@@ -559,12 +590,15 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                               color: Colors.transparent,
                               child: ListTile(
                                 hoverColor: Theme.of(context).listTileTheme.selectedColor,
-                                title: Row(
-                                  children: [
-                                    Icon(Icons.arrow_forward,color: Theme.of(context).iconTheme.color),
-                                    const SizedBox(width: 5),
-                                    Text(LocalizationService.getLocalizedString("instance_info"),style: Theme.of(context).textTheme.labelSmall)
-                                  ],
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.arrow_forward,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text(LocalizationService.getLocalizedString("instance_info"),style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
                                 ),
                                 onTap: selectedInstance != null && selectedInstance!.isProcess ? () async { //&& selectedInstance!.isProcess
                                   logger.d("按下${LocalizationService.getLocalizedString("instance_info")}按鈕");
@@ -579,14 +613,17 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                               color: Colors.transparent,
                               child: ListTile(
                                 hoverColor: Theme.of(context).listTileTheme.selectedColor,
-                                title: Row(
-                                  children: [
-                                    Icon(Icons.play_arrow,color: Theme.of(context).iconTheme.color),
-                                    const SizedBox(width: 5),
-                                    Text(LocalizationService.getLocalizedString("edit_config"),style: Theme.of(context).textTheme.labelSmall)
-                                  ],
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.play_arrow,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text(LocalizationService.getLocalizedString("edit_config"),style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
                                 ),
-                                onTap: selectedInstance != null ? () {
+                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () {
                                   logger.d("按下${LocalizationService.getLocalizedString("edit_config")}按鈕");
                                   Config? config;
                                   ConfigService.getConfigFromLocalStorage().then((value) async{
@@ -624,14 +661,17 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                               color: Colors.transparent,
                               child: ListTile(
                                 hoverColor: Theme.of(context).listTileTheme.selectedColor,
-                                title: Row(
-                                  children: [
-                                    Icon(Icons.play_arrow,color: Theme.of(context).iconTheme.color),
-                                    const SizedBox(width: 5),
-                                    Text(LocalizationService.getLocalizedString("edit_setting"),style: Theme.of(context).textTheme.labelSmall)
-                                  ],
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.play_arrow,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text(LocalizationService.getLocalizedString("edit_setting"),style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
                                 ),
-                                onTap: selectedInstance != null ? () {
+                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () {
                                   logger.d("按下${LocalizationService.getLocalizedString("edit_setting")}按鈕");
                                   if(selectedInstance!.type == BotType.raid)
                                   {

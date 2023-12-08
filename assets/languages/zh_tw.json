@@ -66,6 +66,7 @@
     "bot_status_tab":"玩家狀態",
     "track_tab":"拾取狀況",
     "save_emerald_tab":"存綠狀況",
+    "tps":"TPS: %tps%",
     "operating_time":"運行時間: %time%",
     "operating_status":"運行狀態: ",
     "operating_status_online":"線上",
@@ -114,6 +115,7 @@
     "empty":"空",
     
     "set_up_guide":"開啟設定教學",
+    "scroll_to_bottom":"滾動到底部",
     "enable_detect_broadcast_title":"偵測廣播訊息:",
     "enable_detect_broadcast_tooltip":"是否偵測廣播訊息",
     "enable_attack_title":"自動打怪:",

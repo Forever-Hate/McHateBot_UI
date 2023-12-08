@@ -109,6 +109,10 @@ class _MyAppState extends State<MyApp> {
                       color: Colors.black, // 阴影颜色
                     )
                   ],
+                ),
+                // 無效按鈕顏色(借用)
+                displaySmall: TextStyle(
+                  color: Color.fromARGB(255, 123, 123, 123)
                 )
 
               ),
@@ -190,17 +194,18 @@ class _MyAppState extends State<MyApp> {
                 titleSmall: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black
+                  color: Colors.black87
                 ),
                 titleMedium: TextStyle(
                   fontSize: 45,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black
+                  color: Colors.black87
                 ),
                 //一般文字
                 labelSmall: TextStyle(
                   fontSize: 15,
-                  color: Colors.black
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87
                 ),
                 //物品欄文字
                 labelMedium: TextStyle(
@@ -214,6 +219,10 @@ class _MyAppState extends State<MyApp> {
                       color: Colors.black, // 阴影颜色
                     )
                   ],
+                ),
+                // 無效按鈕顏色(借用)
+                displaySmall: TextStyle(
+                  color: Colors.black26
                 )
 
               ),
@@ -240,7 +249,7 @@ class _MyAppState extends State<MyApp> {
 
               //icon
               iconTheme: const IconThemeData(
-                color: Colors.black,
+                color: Colors.black87,
               ),
               
               //switch
