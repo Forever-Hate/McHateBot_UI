@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 
 import 'package:awesome_icons/awesome_icons.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../components/custom_appbar.dart';
 import '../components/new_instance_dialog.dart';
 import '../components/bot_instance_card.dart';
 import '../models/bot_instance.dart';
-import '../models/config.dart';
-import '../models/setting.dart';
 import '../screens/emerald_setting_edit_screen.dart';
 import '../screens/raid_setting_edit_screen.dart';
 import '../screens/config_edit_screen.dart';
 import '../screens/global_setting_screen.dart';
 import '../screens/bot_status_screen.dart';
-import '../services/setting_service.dart';
 import '../services/bot_instance_service.dart';
-import '../services/config_service.dart';
 import '../services/github_service.dart';
 import '../services/localization_service.dart';
 import '../services/zip_service.dart';
@@ -248,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
               ),
               onTap: () {
                 logger.d("按下${LocalizationService.getLocalizedString("global_setting")}按鈕");
-                Navigator.push(context,MaterialPageRoute(builder: (context) => const GlobalSettingScreen()));
+                Navigator.push(context,MaterialPageRoute(builder: (context) => GlobalSettingScreen(instances)));
               },
             ),
             ListTile(
@@ -367,11 +364,11 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                               onWillAccept: (data) => data != instances[index] && data!.type == instances[index].type,
                                               onAccept: (data) {
                                                 setState(() {
-                                                  // 交換順序
+                                                  // 取得兩個BotInstance的索引
                                                   var index1 = this.instances.indexOf(data);
                                                   var index2 = this.instances.indexOf(instances[index]);
 
-                                                  // Swap the instances
+                                                  // 交換順序
                                                   var temp = this.instances[index1];
                                                   this.instances[index1] = this.instances[index2];
                                                   this.instances[index2] = temp;
@@ -487,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                   colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.play_circle_fill,color: Theme.of(context).iconTheme.color),
+                                      Icon(Icons.power,color: Theme.of(context).iconTheme.color),
                                       const SizedBox(width: 5),
                                       Text(LocalizationService.getLocalizedString("launch"),style: Theme.of(context).textTheme.labelSmall)
                                     ],
@@ -556,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                         BotInstanceService.saveBotInstance(instances);
                                         if(instances.isNotEmpty)
                                         {
-                                          selectedInstance = instances[0];
+                                          selectedInstance = instances.last;
                                         }
                                         else
                                         {
@@ -567,20 +564,50 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                 }:null
                               ),
                             ),
+                            //複製
+                            Material(
+                              color: Colors.transparent,
+                              child: ListTile(
+                                hoverColor: Theme.of(context).listTileTheme.selectedColor,
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.copy,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text(LocalizationService.getLocalizedString("copy"),style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
+                                ), 
+                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () async {
+                                  logger.d("按下${LocalizationService.getLocalizedString("copy")}按鈕");
+                                  final copyInstance = await BotInstanceService.copyBotInstance(selectedInstance!);
+                                  setState(() {
+                                    instances.add(copyInstance);
+                                    botInstanceCardKeys.putIfAbsent(copyInstance.uuid, () => GlobalKey());
+                                    selectedInstance = copyInstance;
+                                    BotInstanceService.saveBotInstance(instances);
+                                  });
+                                }:null
+                              ),
+                            ),
                             //開啟資料夾位置
                             Material(
                               color: Colors.transparent,
                               child: ListTile(
                                 hoverColor: Theme.of(context).listTileTheme.selectedColor,
-                                title: Row(
-                                  children: [
-                                    Icon(Icons.folder_open,color: Theme.of(context).iconTheme.color),
-                                    const SizedBox(width: 5),
-                                    Text(LocalizationService.getLocalizedString("open_directory"),style: Theme.of(context).textTheme.labelSmall)
-                                  ],
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.folder_open,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text(LocalizationService.getLocalizedString("open_directory"),style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
                                 ),
                                 onTap: selectedInstance != null ? () async {
-                                  logger.d("按下${LocalizationService.getLocalizedString("remove")}按鈕");
+                                  logger.d("按下${LocalizationService.getLocalizedString("open_directory")}按鈕");
                                   BotInstanceService.openBotInstanceFolder(selectedInstance!);
                                 }:null,
                               ),
@@ -617,42 +644,16 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                   colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.play_arrow,color: Theme.of(context).iconTheme.color),
+                                      Icon(Icons.settings,color: Theme.of(context).iconTheme.color),
                                       const SizedBox(width: 5),
                                       Text(LocalizationService.getLocalizedString("edit_config"),style: Theme.of(context).textTheme.labelSmall)
                                     ],
                                   ),
                                 ),
-                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () {
+                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () async {
                                   logger.d("按下${LocalizationService.getLocalizedString("edit_config")}按鈕");
-                                  Config? config;
-                                  ConfigService.getConfigFromLocalStorage().then((value) async{
-                                    if(value != null)
-                                    {
-                                      logger.d("取得緩存，value: $value");
-                                      Util.getYesNoDialog(
-                                        context,
-                                        Text(LocalizationService.getLocalizedString("detect_temp_dialog_content"),style: Theme.of(context).textTheme.labelSmall), 
-                                        () async {
-                                          logger.d("按下確認按鈕，讀取緩存");
-                                          config = value;
-                                          await Navigator.push(context, MaterialPageRoute(builder: (context) => ConfigEditScreen(config,selectedInstance!)));
-                                          setState(() {});
-                                        },
-                                        () async {
-                                          logger.d("按下取消按鈕，不讀取緩存");
-                                          config = null;
-                                          await Navigator.push(context, MaterialPageRoute(builder: (context) => ConfigEditScreen(config,selectedInstance!)));
-                                          setState(() {});
-                                        });
-                                    }
-                                    else
-                                    {
-                                      logger.d("沒有緩存");
-                                      await Navigator.push(context, MaterialPageRoute(builder: (context) => ConfigEditScreen(config,selectedInstance!)));
-                                      setState(() {});
-                                    }
-                                  });
+                                  await Navigator.push(context, MaterialPageRoute(builder: (context) => ConfigEditScreen(selectedInstance!)));
+                                  setState(() {});
                                 }:null,
                               ),
                             ),
@@ -665,78 +666,60 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                                   colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.play_arrow,color: Theme.of(context).iconTheme.color),
+                                      Icon(Icons.settings,color: Theme.of(context).iconTheme.color),
                                       const SizedBox(width: 5),
                                       Text(LocalizationService.getLocalizedString("edit_setting"),style: Theme.of(context).textTheme.labelSmall)
                                     ],
                                   ),
                                 ),
-                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () {
+                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () async {
                                   logger.d("按下${LocalizationService.getLocalizedString("edit_setting")}按鈕");
                                   if(selectedInstance!.type == BotType.raid)
                                   {
-                                    SettingService.getRaidSettingFromLocalStorage().then((value) async {
-                                      RaidSetting? raidSetting;
-                                      if(value != null)
-                                      {
-                                        logger.d("取得緩存，value: $value");
-                                        Util.getYesNoDialog(
-                                          context,
-                                          Text(LocalizationService.getLocalizedString("detect_temp_dialog_content"),style: Theme.of(context).textTheme.labelSmall), 
-                                          () async {
-                                            logger.d("按下確認按鈕，讀取緩存value:${value.toJson(BotType.raid)}");
-                                            raidSetting = value;
-                                            await Navigator.push(context, MaterialPageRoute(builder: (context) => RaidSettingEditScreen(raidSetting,selectedInstance!)));
-                                            setState(() {});
-                                          },
-                                          () async {
-                                            logger.d("按下取消按鈕，不讀取緩存");
-                                            raidSetting = null;
-                                            await Navigator.push(context, MaterialPageRoute(builder: (context) => RaidSettingEditScreen(raidSetting,selectedInstance!)));
-                                            setState(() {});
-                                          }
-                                        );
-                                      }
-                                      else
-                                      {
-                                        logger.d("沒有緩存");
-                                        await Navigator.push(context, MaterialPageRoute(builder: (context) => RaidSettingEditScreen(raidSetting,selectedInstance!)));
-                                        setState(() {});
-                                      }
-                                    });
+                                    await Navigator.push(context, MaterialPageRoute(builder: (context) => RaidSettingEditScreen(selectedInstance!)));
                                   }
                                   else if(selectedInstance!.type == BotType.emerald)
                                   {
-                                    SettingService.getEmeraldSettingFromLocalStorage().then((value) async {
-                                      EmeraldSetting? emeraldSetting;
-                                      if(value != null)
-                                      {
-                                        logger.d("取得緩存，value: $value");
-                                        Util.getYesNoDialog(
-                                          context,
-                                          Text(LocalizationService.getLocalizedString("detect_temp_dialog_content"),style: Theme.of(context).textTheme.labelSmall), 
-                                          () async {
-                                            logger.d("按下確認按鈕，讀取緩存");
-                                            emeraldSetting = value;
-                                            await Navigator.push(context, MaterialPageRoute(builder: (context) => EmeraldSettingEditScreen(emeraldSetting,selectedInstance!)));
-                                            setState(() {});
-                                          },
-                                          () async {
-                                            logger.d("按下取消按鈕，不讀取緩存");
-                                            emeraldSetting = null;
-                                            await Navigator.push(context, MaterialPageRoute(builder: (context) => EmeraldSettingEditScreen(emeraldSetting,selectedInstance!)));
-                                            setState(() {});
-                                          }
-                                        );
-                                      }
-                                      else
-                                      {
-                                        logger.d("沒有緩存");
-                                        await Navigator.push(context, MaterialPageRoute(builder: (context) => EmeraldSettingEditScreen(emeraldSetting,selectedInstance!)));
-                                        setState(() {});
-                                      }
-                                    });
+                                    await Navigator.push(context, MaterialPageRoute(builder: (context) => EmeraldSettingEditScreen(selectedInstance!)));
                                   }
+                                  setState(() {});
+                                }:null,
+                              ),
+                            ),
+                            // 一鍵啟動
+                            Material(
+                              color: Colors.transparent,
+                              child: ListTile(
+                                hoverColor: Theme.of(context).listTileTheme.selectedColor,
+                                title: ColorFiltered(
+                                  colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.play_circle_fill,color: Theme.of(context).iconTheme.color),
+                                      const SizedBox(width: 5),
+                                      Text("一鍵啟動",style: Theme.of(context).textTheme.labelSmall)
+                                    ],
+                                  ),
+                                ),
+                                onTap: selectedInstance != null && !selectedInstance!.isProcess ? () async {
+                                  logger.d("按下一鍵啟動按鈕");
+                                  int count = 0;
+                                  var instances = this.instances.where((element) => element.autoStart == true);
+                                  for(var instance in instances)
+                                  {
+                                    setState(() {
+                                      isProcessing = true;
+                                      currentStatus = "正在啟動(${count+1}/${instances.length})";
+                                    });
+                                    if(!instance.isProcess)
+                                    {
+                                      await BotInstanceService.openBotInstance(instance,expressPort: int.parse(dotenv.env['EXPRESS_PORT']!)+count,websocketPort: int.parse(dotenv.env['WEBSOCKET_PORT']!)+count);
+                                    }
+                                    count++;
+                                  }
+                                  setState(() {
+                                    isProcessing = false;
+                                  });
                                 }:null,
                               ),
                             ),

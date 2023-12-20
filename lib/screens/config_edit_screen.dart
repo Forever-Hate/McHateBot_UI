@@ -7,7 +7,6 @@ import '../components/custom_appbar.dart';
 import '../components/network_image.dart';
 import '../models/bot_instance.dart';
 import '../models/config.dart';
-import '../services/local_storage_service.dart';
 import '../services/localization_service.dart';
 import '../services/minecraft_service.dart';
 import '../services/bot_instance_service.dart';
@@ -17,9 +16,8 @@ import '../utils/util.dart';
 
 /// 設定檔編輯頁面
 class ConfigEditScreen extends StatefulWidget {
-  final Config? config;
   final BotInstance instance;
-  const ConfigEditScreen(this.config,this.instance,{super.key});
+  const ConfigEditScreen(this.instance,{super.key});
 
   @override
   State<ConfigEditScreen> createState() => _ConfigEditScreenState();
@@ -35,13 +33,9 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
   final FocusNode _focusNode = FocusNode();
   /// 是否為有效的username
   bool isValidUsername = false;
-
-  /// 是否要存到暫存(checkBox value)
-  bool isSaveToTemp = false;
-
   /// 滾動控制器
   final ScrollController _scrollController = ScrollController();
-
+  /// 載入config的future
   late Future<List<dynamic>> _future;
   
   @override
@@ -222,7 +216,7 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
             builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
               if(snapshot.connectionState == ConnectionState.done)
               {
-                config ??= widget.config ?? snapshot.data![0];
+                config ??= snapshot.data![0];
                 config!.ip = (snapshot.data![1] as Map<String,int>).entries.reduce((a, b) => a.value < b.value ? a : b).key;
                 _textEditingController.text = config!.username;
                 return SingleChildScrollView(
@@ -346,69 +340,11 @@ class _ConfigEditScreenState extends State<ConfigEditScreen> {
                                 widget.instance.botUuid = value!;
                                 widget.instance.username = config!.username;
                                 await ConfigService.saveConfig(widget.instance.uuid,config!);
-                                await BotInstanceService.saveBotInstanceByUuid(widget.instance.uuid,widget.instance);
-                                LocalStorageService.getIsSaveConfigToTemp().then((value) {
-                                  if(value == null)
-                                  {
-                                    logger.d("第一次儲存，顯示是否儲存到暫存");
-                                    Util.getYesNoDialog(
-                                      context,
-                                      StatefulBuilder(
-                                        builder: (BuildContext context, StateSetter setState) {
-                                          return Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(LocalizationService.getLocalizedString("save_to_temp"),style: Theme.of(context).textTheme.labelSmall),
-                                              const SizedBox(height: 10),
-                                              CheckboxListTile(
-                                                controlAffinity: ListTileControlAffinity.leading, //讓複選框在文字前面
-                                                contentPadding: EdgeInsets.zero, //讓複選框不要有padding
-                                                title: Text(LocalizationService.getLocalizedString("save_my_option"),style: Theme.of(context).textTheme.labelSmall),
-                                                value: isSaveToTemp,
-                                                onChanged: (newValue){
-                                                  logger.i("按下儲存到暫存");
-                                                  setState(() {
-                                                    isSaveToTemp = newValue!;
-                                                  });
-                                                }
-                                              )
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                      (){
-                                        Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
-                                          if(isSaveToTemp)
-                                          {
-                                            LocalStorageService.saveIsSaveConfigToTemp(true);
-                                          }
-                                          ConfigService.saveConfigToLocalStorage(config!);
-                                          Navigator.pop(context);
-                                        });
-                                      },
-                                      (){
-                                        Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
-                                          if(isSaveToTemp)
-                                          {
-                                            LocalStorageService.saveIsSaveConfigToTemp(false);
-                                          }
-                                          Navigator.pop(context);
-                                        });
-                                      }
-                                    );
-                                  }
-                                  else
-                                  {
-                                    logger.d("已經儲存過，直接儲存");
-                                    Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){  
-                                      if(value)
-                                      {
-                                        ConfigService.saveConfigToLocalStorage(config!);
-                                      }
-                                      Navigator.pop(context);
-                                    });
-                                  }
+                                BotInstanceService.saveBotInstanceByUuid(widget.instance.uuid,widget.instance).then((value) {
+                                  // 彈出儲存成功視窗
+                                  Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
+                                    Navigator.pop(context);
+                                  });
                                 });
                               });
                             }

@@ -7,7 +7,6 @@ import '../components/custom_appbar.dart';
 import '../components/network_image.dart';
 import '../models/bot_instance.dart';
 import '../models/setting.dart';
-import '../services/local_storage_service.dart';
 import '../services/bot_instance_service.dart';
 import '../services/localization_service.dart';
 import '../services/setting_service.dart';
@@ -16,9 +15,8 @@ import '../utils/util.dart';
 
 /// 存綠設定頁面
 class EmeraldSettingEditScreen extends StatefulWidget {
-  final EmeraldSetting? setting;
   final BotInstance instance;
-  const EmeraldSettingEditScreen(this.setting,this.instance,{super.key});
+  const EmeraldSettingEditScreen(this.instance,{super.key});
 
   @override
   State<EmeraldSettingEditScreen> createState() => _EmeraldSettingEditScreenState();
@@ -36,9 +34,6 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
 
   //表單驗證Key
   final _formKey = GlobalKey<FormState>();
-
-  //是否儲存到暫存
-  bool isSaveToTemp = false;
 
   //滾動控制器
   final ScrollController _scrollController = ScrollController();
@@ -247,6 +242,7 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
       backgroundColor: Theme.of(context).primaryColor,
       appBar: getCustomAppBarByIndex(LocalizationService.getLocalizedString("appbar_setting_title"), context),
       floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Tooltip(
             message: LocalizationService.getLocalizedString("set_up_guide"),
@@ -285,7 +281,7 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
                 tradeContentList.add(TextEditingController(text: element.join(",")));
               }
             }
-            setting ??= widget.setting ?? snapshot.data!;
+            setting ??= snapshot.data!;
             return Container(
               padding: const EdgeInsets.only(bottom: 10),
               child: SingleChildScrollView(
@@ -700,69 +696,11 @@ class _EmeraldSettingEditScreenState extends State<EmeraldSettingEditScreen> {
                               
                               //將hasFinishSetting設為true，完成設定
                               widget.instance.hasFinishSetting = true;
-                              await BotInstanceService.saveBotInstanceByUuid(widget.instance.uuid,widget.instance);
-
-                              LocalStorageService.getIsSaveEmeraldSettingToTemp().then((value) {
-                                if (value == null)
-                                {
-                                  Util.getYesNoDialog(
-                                    context,
-                                    StatefulBuilder(
-                                      builder: (BuildContext context, StateSetter setState) {
-                                        return Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(LocalizationService.getLocalizedString("save_to_temp"),style: Theme.of(context).textTheme.labelSmall),
-                                            const SizedBox(height: 10),
-                                            CheckboxListTile(
-                                              controlAffinity: ListTileControlAffinity.leading, //讓複選框在文字前面
-                                              contentPadding: EdgeInsets.zero, //讓複選框不要有padding
-                                              title: Text(LocalizationService.getLocalizedString("save_my_option"),style: Theme.of(context).textTheme.labelSmall),
-                                              value: isSaveToTemp,
-                                              onChanged: (newValue){
-                                                logger.i("按下儲存到暫存");
-                                                setState(() {
-                                                  isSaveToTemp = newValue!;
-                                                });
-                                              }
-                                            )
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                    (){
-                                      Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
-                                        if(isSaveToTemp)
-                                        {
-                                          LocalStorageService.saveIsSaveConfigToTemp(true);
-                                        }
-                                        SettingService.saveEmeraldSettingToLocalStorage(setting!);
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                    (){
-                                      Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
-                                        if(isSaveToTemp)
-                                        {
-                                          LocalStorageService.saveIsSaveConfigToTemp(false);
-                                        }
-                                        Navigator.pop(context);
-                                      });
-                                    }
-                                  );
-                                }
-                                else
-                                {
-                                  Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
-                                    if(value)
-                                    {
-                                      SettingService.saveEmeraldSettingToLocalStorage(setting!);
-                                    }
-                                    //會返回到主畫面
-                                    Navigator.pop(context);
-                                  });
-                                }
+                              BotInstanceService.saveBotInstanceByUuid(widget.instance.uuid,widget.instance).then((value) {
+                                // 彈出儲存成功視窗
+                                Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
+                                  Navigator.pop(context);
+                                });
                               });
                             }
                             else

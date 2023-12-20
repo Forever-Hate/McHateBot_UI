@@ -495,7 +495,6 @@ class _BotInstanceCardInListTileState extends State<BotInstanceCardInListTile> {
                         ],
                       );
                     }
-
                   }
                 ),
                 SizedBox(

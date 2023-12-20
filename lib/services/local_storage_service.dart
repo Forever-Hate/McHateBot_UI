@@ -19,12 +19,6 @@ import '../utils/logger.dart';
 ///4. saveMessageFilter: 儲存messageFilters清單到LocalStorage
 ///5. getMessageAutoScroll: 從LocalStorage取得isAutoScroll
 ///6. saveMessageAutoScroll: 儲存isAutoScroll到LocalStorage
-///7. getIsSaveConfigToTemp: 從LocalStorage取得isSaveConfigToTemp
-///8. saveIsSaveConfigToTemp: 儲存isSaveConfigToTemp到LocalStorage
-///9. getIsSaveRaidSettingToTemp: 從LocalStorage取得isSaveRaidSettingToTemp
-///10. saveIsSaveRaidSettingToTemp: 儲存isSaveRaidSettingToTemp到LocalStorage
-///11. getIsSaveEmeraldSettingToTemp: 從LocalStorage取得isSaveEmeraldSettingToTemp
-///12. saveIsSaveEmeraldSettingToTemp: 儲存isSaveEmeraldSettingToTemp到LocalStorage
 ///13. getThemeType: 從LocalStorage取得ThemeType
 ///14. saveThemeType: 儲存ThemeType到LocalStorage
 class LocalStorageService {
@@ -84,49 +78,7 @@ class LocalStorageService {
     await _setPrefClient();
     return _prefs!.getBool("isAutoScroll") ?? false;
   }
-
-  /// 儲存isSaveConfigToTemp到LocalStorage
-  static Future<void> saveIsSaveConfigToTemp(bool isSaveConfigToTemp) async {
-    logger.i("進入saveIsSaveConfigToTemp，儲存isSaveConfigToTemp");
-    await _setPrefClient();
-    _prefs!.setBool("isSaveConfigToTemp", isSaveConfigToTemp);
-  }
-
-  /// 從LocalStorage取得isSaveConfigToTemp
-  static Future<bool?> getIsSaveConfigToTemp() async {
-    logger.i("進入getIsSaveConfigToTemp，取得isSaveConfigToTemp");
-    await _setPrefClient();
-    return _prefs!.getBool("isSaveConfigToTemp");
-  }
-
-  /// 儲存isSaveRaidSettingToTemp到LocalStorage
-  static Future<void> saveIsSaveRaidSettingToTemp(bool isSaveRaidSettingToTemp) async {
-    logger.i("進入saveIsSaveRaidSettingToTemp，儲存isSaveRaidSettingToTemp");
-    await _setPrefClient();
-    _prefs!.setBool("isSaveRaidSettingToTemp", isSaveRaidSettingToTemp);
-  }
-
-  /// 從LocalStorage取得isSaveRaidSettingToTemp
-  static Future<bool?> getIsSaveRaidSettingToTemp() async {
-    logger.i("進入getIsSaveRaidSettingToTemp，取得isSaveRaidSettingToTemp");
-    await _setPrefClient();
-    return _prefs!.getBool("isSaveRaidSettingToTemp");
-  }
-
-  /// 儲存isSaveEmeraldSettingToTemp到LocalStorage
-  static Future<void> saveIsSaveEmeraldSettingToTemp(bool isSaveEmeraldSettingToTemp) async {
-    logger.i("進入saveIsSaveEmeraldSettingToTemp，儲存isSaveEmeraldSettingToTemp");
-    await _setPrefClient();
-    _prefs!.setBool("isSaveEmeraldSettingToTemp", isSaveEmeraldSettingToTemp);
-  }
-
-  /// 從LocalStorage取得isSaveEmeraldSettingToTemp
-  static Future<bool?> getIsSaveEmeraldSettingToTemp() async {
-    logger.i("進入getIsSaveEmeraldSettingToTemp，取得isSaveEmeraldSettingToTemp");
-    await _setPrefClient();
-    return _prefs!.getBool("isSaveEmeraldSettingToTemp");
-  }
-
+  
   /// 從LocalStorage取得ThemeType
   static Future<ThemeType> getThemeType() async {
     logger.i("進入getThemeType，取得ThemeType");

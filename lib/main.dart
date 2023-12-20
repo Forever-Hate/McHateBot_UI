@@ -164,6 +164,11 @@ class _MyAppState extends State<MyApp> {
                 thumbColor: MaterialStateProperty.all<Color>(Colors.white60),
               ),
 
+              // 核取框
+              checkboxTheme: CheckboxThemeData(
+                fillColor: MaterialStateProperty.all<Color>(Colors.white),
+                checkColor: MaterialStateProperty.all<Color>(Colors.black),
+              ),
               useMaterial3: true,
             );
             break;
@@ -272,6 +277,12 @@ class _MyAppState extends State<MyApp> {
               // 滾動條
               scrollbarTheme: ScrollbarThemeData(
                 thumbColor: MaterialStateProperty.all<Color>(Colors.black45),
+              ),
+
+              // 核取框
+              checkboxTheme: CheckboxThemeData(
+                fillColor: MaterialStateProperty.all<Color>(Colors.black87),
+                checkColor: MaterialStateProperty.all<Color>(Colors.white), 
               ),
 
               useMaterial3: true,

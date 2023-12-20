@@ -15,8 +15,6 @@ import '../utils/logger.dart';
 /// * 方法:
 /// 1. getConfig: 讀取config.json
 /// 2. saveConfig: 儲存config.json
-/// 3. getConfigFromLocalStorage: 從LocalStorage取得config
-/// 4. saveConfigToLocalStorage: 儲存config到LocalStorage
 class ConfigDao {
   /// 讀取 config.json
   static Future<Config> getConfig(String uuid) async {
@@ -33,30 +31,5 @@ class ConfigDao {
     final file = File(join(baseDir.path,"instance",uuid,"config.json"));
     await file.writeAsString(config.toJsonString());
   }
-  /// 從LocalStorage取得config
-  static Future<Config?> getConfigFromLocalStorage() async {
-    logger.i("進入getConfig，取得config");
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    Config config;
-    if(prefs.containsKey("config"))
-    {
-      try 
-      {
-        logger.d(prefs.getString("config")!);
-        config = Config.fromJson(jsonDecode(prefs.getString("config")!));
-        return config;
-      } 
-      catch (e) 
-      {
-        logger.e(e);
-      }
-    }
-    return null;
-  }
-  /// 儲存config到LocalStorage
-  static Future<void> saveConfigToLocalStorage(Config config) async {
-    logger.i("進入saveConfig，儲存config");
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString("config", config.toJsonString());
-  }
+
 }

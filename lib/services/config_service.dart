@@ -17,8 +17,6 @@ import '../utils/logger.dart';
 /// 3. getEnv: 取得.env環境變數
 /// 4. saveEnv: 儲存.env環境變數
 /// 5. modifyEnv: 修改.env環境變數
-/// 6. getConfigFromLocalStorage: 從LocalStorage取得config
-/// 7. saveConfigToLocalStorage: 儲存config到LocalStorage
 class ConfigService{
 
   /// 取得config
@@ -65,16 +63,4 @@ class ConfigService{
     }
   }
 
-  /// 從localStorage取得config
-  static Future<Config?> getConfigFromLocalStorage() async {
-    logger.i("進入getConfigFromLocalStorage，取得config");
-    return await ConfigDao.getConfigFromLocalStorage();
-
-  }
-
-  /// 儲存config到localStorage
-  static Future<void> saveConfigToLocalStorage(Config config) async {
-    logger.i("進入saveConfigToLocalStorage，儲存config");
-    await ConfigDao.saveConfigToLocalStorage(config);
-  }
 }

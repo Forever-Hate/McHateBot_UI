@@ -40,6 +40,8 @@ class ZipService {
           await dir.create(recursive: true);
         }
       }
+      //刪除壓縮檔案
+      await zipFile.delete();
       return uuid;
     } catch (e) {
       logger.e(e);

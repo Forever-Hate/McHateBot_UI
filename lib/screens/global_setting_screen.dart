@@ -3,15 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../components/custom_appbar.dart';
+import '../models/bot_instance.dart';
 import '../models/provider.dart';
+import '../services/bot_instance_service.dart';
 import '../services/localization_service.dart';
 import '../services/local_storage_service.dart';
+import '../utils/config.dart';
 import '../utils/logger.dart';
 import '../utils/util.dart';
 
 /// 全域設定頁面
 class GlobalSettingScreen extends StatefulWidget {
-  const GlobalSettingScreen({super.key});
+  final List<BotInstance> instances;
+  const GlobalSettingScreen(this.instances,{super.key});
 
   @override
   State<GlobalSettingScreen> createState() => _GlobalSettingScreenState();
@@ -20,6 +24,7 @@ class GlobalSettingScreen extends StatefulWidget {
 class _GlobalSettingScreenState extends State<GlobalSettingScreen> {
   
   bool showWelcomeScreen = false;
+
   
   @override
   void initState() {
@@ -34,6 +39,7 @@ class _GlobalSettingScreenState extends State<GlobalSettingScreen> {
   @override
   void dispose() {
     LocalStorageService.saveIsShowWelcomeScreen(showWelcomeScreen);
+    BotInstanceService.saveBotInstance(widget.instances);
     super.dispose();
   }
 
@@ -118,6 +124,69 @@ class _GlobalSettingScreenState extends State<GlobalSettingScreen> {
                 )
               )
             ),
+            Visibility(
+              visible: widget.instances.where((instance) => instance.hasConfigured && instance.hasFinishSetting).toList().isNotEmpty,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 5),
+                  Text(LocalizationService.getLocalizedString("One-click_start"),style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(height: 5),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme.of(context).dividerColor),
+                      borderRadius: BorderRadius.circular(5)
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      children: [
+                        ...BotType.values.map((botType){
+                          var instances = widget.instances.where((instance) => instance.type == botType && instance.hasConfigured && instance.hasFinishSetting).toList();
+                          return instances.isNotEmpty ? 
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(BOT_TYPES[botType.value]!,style: Theme.of(context).textTheme.labelSmall),
+                              Row(
+                                children: [
+                                  ...instances.asMap().entries.map((entry) {
+                                    int index = entry.key;
+                                    var instance = entry.value;
+                                    return SizedBox(
+                                      width: 200,
+                                      height: 50,
+                                      child: CheckboxListTile(
+                                        contentPadding: const EdgeInsets.all(0),
+                                        controlAffinity: ListTileControlAffinity.leading,
+                                        value: instance.autoStart,
+                                        title: Text(instance.username,style: Theme.of(context).textTheme.labelSmall,overflow: TextOverflow.ellipsis),
+                                        onChanged: (newValue){
+                                          logger.d("切換newValue為$newValue，索引為$index");
+                                          if (widget.instances.where((element) => element.autoStart == true).length >= 4 && newValue == true) {
+                                            logger.d("超過4個");
+                                          }
+                                          else
+                                          {
+                                            setState(() {
+                                              instance.autoStart = newValue!;
+                                            });
+                                          }
+                                        }
+                                      ),
+                                    );
+                                  })
+                                ],
+                              )
+                            ],
+                          ):Container();
+                        })
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
             //清除快取按鈕
             Tooltip(
               message: LocalizationService.getLocalizedString("clear_cache_tooltip"),

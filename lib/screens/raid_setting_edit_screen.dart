@@ -9,15 +9,13 @@ import '../models/bot_instance.dart';
 import '../models/setting.dart';
 import '../services/setting_service.dart';
 import '../services/bot_instance_service.dart';
-import '../services/local_storage_service.dart';
 import '../services/localization_service.dart';
 import '../utils/logger.dart';
 import '../utils/util.dart';
 
 class RaidSettingEditScreen extends StatefulWidget {
-  final RaidSetting? setting;
   final BotInstance instance;
-  const RaidSettingEditScreen(this.setting,this.instance,{super.key});
+  const RaidSettingEditScreen(this.instance,{super.key});
 
   @override
   State<RaidSettingEditScreen> createState() => _RaidSettingEditScreenState();
@@ -31,10 +29,8 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
   final FocusNode _focusNode = FocusNode();
   /// 表單Key
   final _formKey = GlobalKey<FormState>();
-  /// 是否儲存到暫存
-  bool isSaveToTemp = false;
   /// 滾動控制器
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
   
   @override
   void initState() {
@@ -273,7 +269,7 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
                 tradeContentList.add(TextEditingController(text: element.join(",")));
               }
             }
-            setting ??= widget.setting ?? snapshot.data!;
+            setting ??= snapshot.data!;
             return Container(
               padding: const EdgeInsets.only(bottom: 10),
               child: SingleChildScrollView(
@@ -804,71 +800,11 @@ class _RaidSettingEditScreenState extends State<RaidSettingEditScreen> {
                               
                               //將hasFinishSetting設為true，完成設定
                               widget.instance.hasFinishSetting = true;
-                              await BotInstanceService.saveBotInstanceByUuid(widget.instance.uuid,widget.instance);
-                              //儲存到緩存
-                              LocalStorageService.getIsSaveRaidSettingToTemp().then((value) async {
-                                if(value == null)
-                                {
-                                  Util.getYesNoDialog(
-                                    context,
-                                    StatefulBuilder(
-                                      builder: (BuildContext context, StateSetter setState) {
-                                        return Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(LocalizationService.getLocalizedString("save_to_temp"),style: Theme.of(context).textTheme.labelSmall),
-                                            const SizedBox(height: 10),
-                                            CheckboxListTile(
-                                              controlAffinity: ListTileControlAffinity.leading, //讓複選框在文字前面
-                                              contentPadding: EdgeInsets.zero, //讓複選框不要有padding
-                                              title: Text(LocalizationService.getLocalizedString("save_my_option"),style: Theme.of(context).textTheme.labelSmall),
-                                              value: isSaveToTemp,
-                                              onChanged: (newValue){
-                                                logger.i("按下儲存到暫存");
-                                                setState(() {
-                                                  isSaveToTemp = newValue!;
-                                                });
-                                              }
-                                            )
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                    (){
-                                      Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
-                                        if(isSaveToTemp)
-                                        {
-                                          LocalStorageService.saveIsSaveRaidSettingToTemp(true);
-                                        }
-                                        SettingService.saveRaidSettingToLocalStorage(setting!);
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                    (){
-                                      Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
-                                        if(isSaveToTemp)
-                                        {
-                                          LocalStorageService.saveIsSaveRaidSettingToTemp(false);
-                                        }
-                                        Navigator.pop(context);
-                                      });
-                                    }
-                                  );
-                                }
-                                else
-                                {
-                                  if(value)
-                                  {
-                                    Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){  
-                                      if(value)
-                                      {
-                                        SettingService.saveRaidSettingToLocalStorage(setting!);
-                                      }
-                                      Navigator.pop(context);
-                                    });
-                                  }
-                                }
+                              BotInstanceService.saveBotInstanceByUuid(widget.instance.uuid,widget.instance).then((value) {
+                                // 彈出儲存成功訊息視窗
+                                Util.getMessageDialog(context, LocalizationService.getLocalizedString("save_success"), (){
+                                  Navigator.pop(context);
+                                });
                               });
                             }
                             else

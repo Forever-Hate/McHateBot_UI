@@ -29,7 +29,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   // 點擊任意鍵文字透明度
   double opacityLevel = 1.0;
   // gif網址
-  String gifUrl = 'https://media.tenor.com/7-CNilpY-l8AAAAd/link-start-sao.gif';
+  String gifUrl = 'assets/images/link-start-sao.gif';
   // gif key
   Key key = UniqueKey();
 
@@ -91,9 +91,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           children: [
             Visibility(
               visible: !isFinish,
-              child:GifView.network(
-                key: key,
+              child:GifView.asset(
                 gifUrl,
+                key: key,
                 controller: controller,
                 fit: BoxFit.fill,
                 height: double.infinity,
