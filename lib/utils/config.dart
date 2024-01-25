@@ -14,7 +14,7 @@ const Map<String,String> BOT_TYPES = {
   "McHateBot_emerald":"存綠"
 };
 ///最大使用者名稱長度(超過會使用跑馬燈)
-const int MAX_USERNAME_LENGTH = 12;
+const int MAX_USERNAME_LENGTH = 5;
 ///最大訊息長度(超過會移除最舊的訊息)
 const int MAX_LOG_LENGTH = 1000;
 

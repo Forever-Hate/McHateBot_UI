@@ -302,13 +302,13 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
                             restartAfterInteractionDuration: const Duration(seconds: 1), // 跑馬燈停止後重新啟動的時間
                             padding: const EdgeInsets.only(left:20), // 跑馬燈左右間距(初始)
                             child: Text(
-                              widget.instance.username,
+                              "${widget.instance.username}(${LocalizationService.getLocalizedString("app_version").replaceFirst("%version%", widget.instance.version)})",
                               style: Theme.of(context).textTheme.labelSmall
                             ),
                           ),
                         ):
                         Text(
-                          widget.instance.username != "" ? widget.instance.username : LocalizationService.getLocalizedString("not_user_configured"),
+                          widget.instance.username != "" ? "${widget.instance.username}(${LocalizationService.getLocalizedString("app_version").replaceFirst("%version%", widget.instance.version)})" : LocalizationService.getLocalizedString("not_user_configured"),
                           style: Theme.of(context).textTheme.labelSmall,
                           textAlign: TextAlign.center,
                         ),
@@ -370,8 +370,7 @@ class _BotInstanceCardState extends State<BotInstanceCard> {
                       ],
                     ),
                   ):
-                  const SizedBox(height: 30),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 35),
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
@@ -517,13 +516,13 @@ class _BotInstanceCardInListTileState extends State<BotInstanceCardInListTile> {
                       restartAfterInteractionDuration: const Duration(seconds: 1), // 跑馬燈停止後重新啟動的時間
                       padding: const EdgeInsets.only(left:20), // 跑馬燈左右間距(初始)
                       child: Text(
-                        widget.instance.username,
+                        "${widget.instance.username}(${LocalizationService.getLocalizedString("app_version").replaceFirst("%version%", widget.instance.version)})",
                         style: Theme.of(context).textTheme.labelSmall
                       ),
                     ),
                   ):
                   Text(
-                    widget.instance.username != "" ? widget.instance.username : LocalizationService.getLocalizedString("not_user_configured"),
+                    widget.instance.username != "" ? "${widget.instance.username}(${LocalizationService.getLocalizedString("app_version").replaceFirst("%version%", widget.instance.version)})" : LocalizationService.getLocalizedString("not_user_configured"),
                     style: Theme.of(context).textTheme.labelSmall,
                     textAlign: TextAlign.center,
                   ),

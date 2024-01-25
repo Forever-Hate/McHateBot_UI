@@ -195,7 +195,7 @@
     "directly_send_msg_to_dc_tooltip":"如未啟用，當轉發ID玩家在線上時，將會收到轉發的訊息",
     "enable_slash_command_title":"應用程式指令:",
     "enable_slash_command_tooltip":"是否啟用應用程式指令",
-    "forward_DC_ID_title":"轉發Discord ID(純數字):",
+    "forward_DC_ID_title":"轉發Discord使用者id(純數字):",
     "forward_DC_ID_tooltip":"僅會轉發訊息給第一個ID，可設定多個ID，使其能夠使用指令(以\",\"分隔)",
     "channel_ID_title":"頻道ID:",
     "channel_ID_tooltip":"請輸入頻道ID",

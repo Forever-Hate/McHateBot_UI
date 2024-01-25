@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "McHateBot 廢土機器人管理平台"
-#define MyAppVersion "1.0.0-alpha-6"
+#define MyAppVersion "1.0.0-alpha-7"
 #define MyAppPublisher "io.github.forever_hate"
 #define MyAppURL "https://github.com/Forever-Hate"
 #define MyAppExeName "mchatebot_ui.exe"

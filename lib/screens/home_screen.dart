@@ -597,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
                               child: ListTile(
                                 hoverColor: Theme.of(context).listTileTheme.selectedColor,
                                 title: ColorFiltered(
-                                  colorFilter: selectedInstance != null && !selectedInstance!.isProcess ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
+                                  colorFilter: selectedInstance != null ? ColorFilter.mode(Theme.of(context).iconTheme.color!, BlendMode.srcIn) : ColorFilter.mode(Theme.of(context).textTheme.displaySmall!.color!, BlendMode.srcIn),
                                   child: Row(
                                     children: [
                                       Icon(Icons.folder_open,color: Theme.of(context).iconTheme.color),
