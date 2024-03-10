@@ -98,6 +98,8 @@
     "filter_chat":"閒聊",
     "filter_trade":"交易",
     "filter_lottery":"抽獎",
+    "filter_dm":".*您 .*-&gt; .*",
+    "filter_dm2":".*-&gt; .*您.*",
     "auto_roll_to_bottom":"自動滾動到底部",
     "command_input_hintText":"請輸入指令",
     "total_emerald_title":"總綠寶石數:",

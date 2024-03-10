@@ -27,8 +27,8 @@ class GitHubService {
         logger.d("沒有緩存在map中");
         if(IS_DEVELOPMENT_STAGE)
         {
-          tagList["McHateBot_raid"] = ["V1.2.32","V1.2.31","V1.2.3"];
-          tagList["McHateBot_emerald"] = ["V1.23","V1.22","V1.21"];
+          tagList["McHateBot_raid"] = ["V1.2.34","V1.2.33","V1.2.32"];
+          tagList["McHateBot_emerald"] = ["V1.24","V1.23","V1.22"];
         }
         else
         {

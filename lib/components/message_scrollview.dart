@@ -38,13 +38,13 @@ class _MessageScrollViewState extends State<MessageScrollView> {
   Queue<String> times = Queue<String>();
 
   //指令輸入框
-  TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
 
   //ListView滾動控制器
   final ScrollController _scrollController = ScrollController();
 
   //訊息過濾器
-  List<bool> filter = [false,false,false,false,false,false,false,false]; 
+  List<bool> filter = [false,false,false,false,false,false,false,false,false]; 
 
   //訊息過濾器正規表達式
   final List<RegExp> regexList = [
@@ -55,6 +55,8 @@ class _MessageScrollViewState extends State<MessageScrollView> {
     RegExp(r'\[.*?'+ LocalizationService.getLocalizedString("filter_chat")+r'.*?\]'),
     RegExp(r'\[.*?'+ LocalizationService.getLocalizedString("filter_trade")+r'.*?\]'),
     RegExp(r'\[.*?'+ LocalizationService.getLocalizedString("filter_lottery")+r'.*?\]'),
+    RegExp(r'\[' + LocalizationService.getLocalizedString("filter_dm")+'\]'),
+    RegExp(r'\[' + LocalizationService.getLocalizedString("filter_dm2")+'\]')
   ];
 
   bool isAutoScroll = false;
@@ -69,7 +71,12 @@ class _MessageScrollViewState extends State<MessageScrollView> {
       setState(() {
         if(value.isNotEmpty)
         {
-          filter = value;
+          //跟舊版本的訊息過濾器暫存長度不一樣，所以要判斷
+          //長度一樣的話就直接覆蓋
+          if(filter.length == value.length)
+          {
+            filter = value;
+          }
         }
       });
     });
@@ -139,7 +146,17 @@ class _MessageScrollViewState extends State<MessageScrollView> {
     for (var i = 1; i < filter.length; i++) {
       if(filter[i])
       {
-        if(regexList[i-1].hasMatch(currentData))
+        bool matchFound = false;
+        if(filter[i] == filter.last)
+        {
+          matchFound = regexList[i-1].hasMatch(currentData) || regexList[i].hasMatch(currentData);
+        }
+        else
+        {
+          matchFound = regexList[i-1].hasMatch(currentData);
+        }
+
+        if(matchFound)
         {
           messages.add(currentData);
           times.add(DateFormat('[HH:mm:ss]').format(DateTime.now()));
@@ -295,58 +312,69 @@ class _FilterSwitchListState extends State<FilterSwitchList> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        getSwitchListTile("", LocalizationService.getLocalizedString("filter_all"), widget.filter[0], (value){
-          setState(() {
-            widget.filter.fillRange(0, widget.filter.length, value);
-          });
-        }),
-        getSwitchListTile("", LocalizationService.getLocalizedString("filter_system"), widget.filter[1], (value){
-          setState(() {
-            widget.filter[1] = value;
-            widget.filter[0] = false;
-          });
-        }),
-        getSwitchListTile("", LocalizationService.getLocalizedString("filter_residence"), widget.filter[2], (value){
-          setState(() {
-            widget.filter[2] = value;
-            widget.filter[0] = false;
-          });
-        }),
-        getSwitchListTile("", LocalizationService.getLocalizedString("filter_facility"), widget.filter[3], (value){
-          setState(() {
-            widget.filter[3] = value;
-            widget.filter[0] = false;
-          });
-        }),
-        getSwitchListTile("", LocalizationService.getLocalizedString("filter_public"), widget.filter[4], (value){
-          setState(() {
-            widget.filter[4] = value;
-            widget.filter[0] = false; 
-          });
-        }),
-        getSwitchListTile("", LocalizationService.getLocalizedString("filter_chat"), widget.filter[5], (value){
-          setState(() {
-            widget.filter[5] = value;
-            widget.filter[0] = false;
-          });
-        }),
-        getSwitchListTile("", LocalizationService.getLocalizedString("filter_trade"), widget.filter[6], (value){
-          setState(() {
-            widget.filter[6] = value;
-            widget.filter[0] = false;
-          });
-        }),
-        getSwitchListTile("", LocalizationService.getLocalizedString("filter_lottery"), widget.filter[7], (value){
-          setState(() {
-            widget.filter[7] = value;
-            widget.filter[0] = false;
-          });
-        }),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            getSwitchListTile("", LocalizationService.getLocalizedString("filter_all"), widget.filter[0], (value){
+              setState(() {
+                widget.filter.fillRange(0, widget.filter.length, value);
+              });
+            }),
+            getSwitchListTile("", LocalizationService.getLocalizedString("filter_system"), widget.filter[1], (value){
+              setState(() {
+                widget.filter[1] = value;
+                widget.filter[0] = false;
+              });
+            }),
+            getSwitchListTile("", LocalizationService.getLocalizedString("filter_residence"), widget.filter[2], (value){
+              setState(() {
+                widget.filter[2] = value;
+                widget.filter[0] = false;
+              });
+            }),
+            getSwitchListTile("", LocalizationService.getLocalizedString("filter_facility"), widget.filter[3], (value){
+              setState(() {
+                widget.filter[3] = value;
+                widget.filter[0] = false;
+              });
+            }),
+            getSwitchListTile("", LocalizationService.getLocalizedString("filter_public"), widget.filter[4], (value){
+              setState(() {
+                widget.filter[4] = value;
+                widget.filter[0] = false; 
+              });
+            }),
+            getSwitchListTile("", LocalizationService.getLocalizedString("filter_chat"), widget.filter[5], (value){
+              setState(() {
+                widget.filter[5] = value;
+                widget.filter[0] = false;
+              });
+            }),
+            getSwitchListTile("", LocalizationService.getLocalizedString("filter_trade"), widget.filter[6], (value){
+              setState(() {
+                widget.filter[6] = value;
+                widget.filter[0] = false;
+              });
+            }),
+            getSwitchListTile("", LocalizationService.getLocalizedString("filter_lottery"), widget.filter[7], (value){
+              setState(() {
+                widget.filter[7] = value;
+                widget.filter[0] = false;
+              });
+            }),
+            getSwitchListTile("", "私訊", widget.filter[8], (value){
+              setState(() {
+                widget.filter[8] = value;
+                widget.filter[0] = false;
+              });
+            }),
+          ],
+        ),
         Align(
-          alignment: Alignment.centerRight,
+          alignment: Alignment.centerLeft,
           child: getSwitchListTile("", LocalizationService.getLocalizedString("auto_roll_to_bottom"), widget.isAutoScroll, (value){
             setState(() {
               widget.isAutoScroll = value;
